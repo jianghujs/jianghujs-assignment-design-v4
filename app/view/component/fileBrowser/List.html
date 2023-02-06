@@ -1,0 +1,341 @@
+<template id="fileBrowser-list">
+  <v-card flat>
+    <confirm ref="confirm"></confirm>
+
+    <v-card-text v-if="!path" class="grow d-flex justify-center align-center grey--text"><$ constantUiMap.btn.selectFile
+      $>
+    </v-card-text>
+
+    <!-- 文件预览 -->
+    <v-card-text v-else-if="isFile" class="grow d-flex justify-center align-center">
+      <div class="flex flex-column justify-center align-center text-center">
+        <v-img v-if="fileType === 'image'" min-width="30" max-width="500" min-height="30" max-height="500"
+               :src="`/<$ ctx.app.config.appId $>/upload/materialRepo/${path}?v=${new Date().getTime()}`" :key="path"
+               lazy-src=""
+               class="grey lighten-2 mb-5" style="margin: auto; cursor: pointer;"
+               @click="openFile(`/<$ ctx.app.config.appId $>/upload/materialRepo/${path}?v=${new Date().getTime()}`)">
+        </v-img>
+        <video v-if="fileType === 'video'" width="80%" min-width="30" max-width="500" min-height="30" max-height="500"
+               :src="`/<$ ctx.app.config.appId $>/upload/materialRepo/${path}?v=${new Date().getTime()}`" :key="path"
+               lazy-src=""
+               class="grey lighten-2 mb-5" style="display: block; margin: auto;" controls>
+          <source :src="`/<$ ctx.app.config.appId $>/upload/materialRepo/${path}?v=${new Date().getTime()}`"
+                  type="video/mp4">
+        </video>
+        <audio v-if="fileType === 'audio'" min-width="30" max-width="500" min-height="30" max-height="500"
+               :src="`/<$ ctx.app.config.appId $>/upload/materialRepo/${path}?v=${new Date().getTime()}`" :key="path"
+               lazy-src=""
+               class="my-10" style="display: block; margin: auto;" controls>
+          <source :src="`/<$ ctx.app.config.appId $>/upload/materialRepo/${path}?v=${new Date().getTime()}`"
+                  type="audio/mpeg">
+        </audio>
+        <div><$ constantUiMap.btn.file $>：{{ `${host}/<$ ctx.app.config.appId $>/upload/materialRepo/${path}` }}</div>
+      </div>
+    </v-card-text>
+
+    <!-- 文件列表 -->
+    <v-card-text v-else-if="dirs.length || files.length" class="pa-0">
+      <v-data-table
+          :headers="headers"
+          :items="tableData"
+          class="elevation-0"
+          :options="{
+                    itemsPerPage: 15
+                }"
+      >
+        <template v-slot:item.name="{ item }">
+          <div v-if="item.type === 'dir'" @click="changePath(item.path)" role="button">
+            <v-icon>mdi-folder-outline</v-icon>
+            <span class="ml-2">{{ item.basename }}</span>
+          </div>
+          <div v-else="item.type === 'file'" @click="changePath(item.path)" role="button">
+            <template>
+              <v-avatar
+                  tile
+                  v-if="checkIsImg(item.basename)"
+                  class=""
+                  size="25"
+              >
+                <v-img
+                    :src="`/<$ ctx.app.config.appId $>/upload/materialRepo/${path}/${item.basename}?v=${new Date().getTime()}`"></v-img>
+              </v-avatar>
+              <v-icon v-else>{{ icons[item.extension.toLowerCase()] || icons['other'] }}</v-icon>
+            </template>
+            <span class="ml-2">{{ item.basename }}</span>
+          </div>
+        </template>
+        <template v-slot:item.size="{ item }">
+          {{ item.size ? formatBytes(item.size) : '-' }}
+        </template>
+        <template v-slot:item.mtime="{ item }">
+          {{ item.mtime ? dayjs.unix(item.mtime).format("YYYY-MM-DD HH:mm:ss") : '-' }}
+        </template>
+        <template v-slot:item.action="{ item }">
+          <div class="text-right" v-if="item.type === 'dir'">
+            <v-btn
+                v-if="operationOption.delete === true && ['/_recycle/', '/image/', '/audio/', '/video/', '/attachment/'].indexOf(item.path) === -1"
+                icon @click.stop="deleteItem(item)">
+              <v-icon color="grey lighten-1">mdi-delete-outline</v-icon>
+            </v-btn>
+          </div>
+          <div class="text-right" v-if="item.type === 'file' && item.path.indexOf('_recycle') === -1">
+            <v-menu v-if="operationOption.renameFile === true" v-model="item.newFolderPopper"
+                    :close-on-content-click="false" :nudge-width="200" offset-y>
+              <template v-slot:activator="{ on }">
+                                <span>
+                                    <v-btn v-if="path" icon v-on="on" @click="item.newFilename=item.basename;">
+                                        <v-icon color="grey lighten-1" style="font-size: 20px;">mdi-rename-box</v-icon>
+                                    </v-btn>
+                                </span>
+              </template>
+              <v-card>
+                <v-card-text>
+                  <v-text-field label="<$ constantUiMap.btn.fileName $>" v-model="item.newFilename" hide-details
+                                color="success"
+                                dense
+                                filled
+                                single-line></v-text-field>
+                </v-card-text>
+                <v-card-actions>
+                  <div class="flex-grow-1"></div>
+                  <v-btn @click="item.newFolderPopper = false" small depressed><$ constantUiMap.btn.cancel $></v-btn>
+                  <v-btn small color="success" :disabled="!item.newFilename" depressed @click="renameFile(item)"><$
+                    constantUiMap.btn.rename $>
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-menu>
+            <v-btn v-if="operationOption.copy === true" icon @click.stop="cutItem(item)">
+              <v-icon color="grey lighten-1" style="font-size: 20px;">mdi-content-cut</v-icon>
+            </v-btn>
+            <v-btn v-if="operationOption.copy === true" icon @click.stop="copyItem(item)">
+              <v-icon color="grey lighten-1" style="font-size: 20px;">mdi-content-copy</v-icon>
+            </v-btn>
+            <v-btn v-if="operationOption.delete === true" icon @click.stop="deleteItem(item)">
+              <v-icon color="grey lighten-1">mdi-delete-outline</v-icon>
+            </v-btn>
+            <v-btn v-if="false" icon>
+              <v-icon color="grey lighten-1">mdi-information</v-icon>
+            </v-btn>
+          </div>
+          </v-btn>
+        </template>
+      </v-data-table>
+    </v-card-text>
+
+    <!-- 为空提示 -->
+    <v-card-text v-else-if="filter" class="grow d-flex justify-center align-center grey--text py-10"><$
+      constantUiMap.btn.fileNotFound $>
+    </v-card-text>
+    <v-card-text v-else class="grow d-flex justify-center align-center grey--text py-10"><$
+      constantUiMap.btn.folderEmpty $>
+    </v-card-text>
+  </v-card>
+</template>
+
+<script>
+Vue.component("list", {
+  vuetify: new Vuetify(),
+  name: 'list',
+  template: '#fileBrowser-list',
+  props: {
+    icons: Object,
+    storage: String,
+    path: String,
+    endpoints: Object,
+    axios: Function,
+    refreshPending: Boolean,
+    operationOption: Object,
+    filter: String
+  },
+  data() {
+    return {
+      host: window.location.host,
+      items: [],
+      page: 1,
+      pageSize: 20,
+      headers: [
+        {
+          text: '文件名',
+          align: 'start',
+          value: 'name',
+          width: '40%'
+        },
+        {text: '大小', value: 'size', width: '20%'},
+        {text: '更新时间', value: 'mtime', width: '20%'},
+        {text: '', value: 'action', sortable: false}
+      ],
+      dayjs: dayjs
+    };
+  },
+  computed: {
+    dirs() {
+      return this.items.filter(
+          item =>
+              item.type === "dir" && item.basename.includes(this.filter)
+      );
+    },
+    files() {
+      return this.items.filter(
+          item =>
+              item.type === "file" && item.basename.includes(this.filter)
+      );
+    },
+    tableData() {
+      return this.dirs.concat(this.files)
+    },
+    totalCount() {
+      return this.files.length;
+    },
+    totalPage() {
+      return Math.ceil(this.files.length / this.pageSize);
+    },
+    isDir() {
+      return this.path[this.path.length - 1] === "/";
+    },
+    isFile() {
+      return !this.isDir;
+    },
+    fileType() {
+      const ext = this.path.substring(this.path.lastIndexOf('.') + 1);
+      if (ext) {
+        if (['jpg', 'jpeg', 'png', 'gif', 'ico', 'svg'].includes(ext.toLowerCase())) {
+          return 'image';
+        }
+        if (['mp4'].includes(ext.toLowerCase())) {
+          return 'video';
+        }
+        if (['mp3'].includes(ext.toLowerCase())) {
+          return 'audio';
+        }
+      }
+      return '';
+    }
+  },
+  methods: {
+    getTotalCount() {
+      return this.tableData.length;
+    },
+    checkIsImg(filename) {
+      return /\.(jpg|jpeg|png|GIF|JPG|PNG)$/.test(filename);
+    },
+    changePath(path) {
+      this.$emit("path-changed", path);
+    },
+    async load() {
+      this.$emit("loading", true);
+      if (this.isDir) {
+        const path = this.path;
+        this.items = await this.getDataRequest(path);
+      } else {
+        // TODO: load file
+      }
+      this.$emit("loading", false);
+    },
+    async getDataRequest(path) {
+      return (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'materialManagement',
+            actionId: 'list',
+            actionData: {path},
+          }
+        }
+      })).data.appData.resultData.rows;
+    },
+    async deleteItem(item) {
+      let confirmed = await this.$refs.confirm.open(
+          false,
+          `<$ constantUiMap.btn.sureDelete $>${item.type === "dir" ? "<$ constantUiMap.btn.folder $>" : "<$ constantUiMap.btn.file $>"
+          }? <br/> <em>${item.basename}</em>`
+      );
+
+      if (confirmed) {
+        this.$emit("loading", true);
+        await this.syncDeleteRequest(item);
+        this.$emit("file-deleted");
+        this.$emit("loading", false);
+      }
+    },
+    async syncDeleteRequest(item) {
+      window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'materialManagement',
+            actionId: 'delete',
+            actionData: {path: item.path},
+          }
+        }
+      })
+    },
+    async cutItem(item) {
+      this.$emit("cut-item", item.path);
+    },
+    async copyItem(item) {
+      this.$emit("copy-item", item.path);
+    },
+    formatBytes(bytes, decimals = 2) {
+      if (bytes === 0) return '0 bytes';
+
+      const k = 1024;
+      const dm = decimals < 0 ? 0 : decimals;
+      const sizes = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    },
+    openFile(path) {
+      window.open(path)
+    },
+    async renameFile(item) {
+      const {path, newFilename} = item;
+      if (!newFilename) {
+        window.vtoast.fail('<$ constantUiMap.btn.enterFileName $>');
+        return;
+      }
+      window.vtoast.loading("<$ constantUiMap.btn.fileRename $>");
+      await this.syncRenameRequest(path, newFilename);
+      item.newFolderPopper = false;
+      await this.load();
+      const isDir = item.path[item.path.length - 1] === "/";
+      const pathDir = isDir ? item.path : item.path.substring(0, item.path.lastIndexOf('/') + 1);
+      this.$emit("read-folder-by-path", pathDir);
+      window.vtoast.success('<$ constantUiMap.btn.renamedSuccess $>');
+    },
+    async syncRenameRequest(path, newFilename) {
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'materialManagement',
+            actionId: 'renameFile',
+            actionData: {
+              path,
+              newFilename
+            },
+          }
+        }
+      })
+    }
+  },
+  watch: {
+    async path() {
+      this.items = [];
+      await this.load();
+    },
+    async refreshPending() {
+      if (this.refreshPending) {
+        await this.load();
+        this.$emit("refreshed");
+      }
+    }
+  },
+});
+</script>
+
+<style scoped>
+.file-list {
+  max-height: calc(100vh - 195px);
+  overflow: auto;
+}
+</style>

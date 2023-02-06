@@ -1,0 +1,286 @@
+<style>
+/* docs */
+.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6 {
+    position: relative;
+    font-weight: 600;
+    line-height: 1.5;
+    outline: none;
+}
+.markdown-body h1 {
+    margin: 0 0 3rem;
+    font-size: 38px;
+    line-height: 1.4;
+    letter-spacing: -.02em;
+}
+.markdown-body h2 {
+    margin: 4rem 0 1.8rem;
+    border-top: 1px solid var(--vt-c-divider-light);
+    padding-top: 1.8rem;
+    font-size: 24px;
+    letter-spacing: -.02em;
+}
+.markdown-body h3 {
+    font-size: 19px;
+    letter-spacing: -.01em;
+    margin: 3rem 0 1.25rem;
+}
+.markdown-body p, .markdown-body ul, .markdown-body ol, .markdown-body summary {
+    margin-bottom: 1.2em;
+}
+.markdown-body ul {
+    padding-left: 1.25rem;
+}
+.markdown-body ul>li:before {
+    content: "";
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: var(--vt-c-text-3);
+    transition: background-color .5s;
+    left: -1.25rem;
+    top: 0.75rem;
+}
+.markdown-body li {
+    position: relative;
+    margin: 1px 0;
+}
+.markdown-body a {
+    font-weight: 500;
+    color: var(--vt-c-brand);
+    transition: color .25s;
+    text-decoration-style: dotted;
+}
+.markdown-body>blockquote {
+    margin: 28px 0;
+    padding: 20px 24px 4px 42px;
+    border-radius: 8px;
+    overflow-x: auto;
+    transition: color .5s,background-color .5s;
+    position: relative;
+    font-size: 14px;
+    line-height: 1.6;
+    font-weight: 500;
+    color: #0000008c;
+    background-color: var(--vt-c-bg-soft);
+}
+.markdown-body>blockquote[class="default"] {
+    border: 1px solid var(--vt-c-brand);
+}
+.markdown-body>blockquote p {
+    margin-bottom: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--vt-c-text-1);
+    transition: color .5s;
+}
+.markdown-body>blockquote[class="default"]:before {
+    color: var(--vt-c-brand);
+}
+.markdown-body>blockquote:before {
+    content: "\24d8";
+    position: absolute;
+    font-weight: 600;
+    font-size: 15px;
+    top: 20px;
+    left: 17px;
+}
+.markdown-body :not(pre,h1,h2,h3,h4,h5,h6,li)>code{
+    font-size: var(--vt-doc-code-font-size);
+}
+.markdown-body :not(pre,li)>code{
+    background-color: var(--vt-c-bg-mute);
+    padding: 0.15em 0.5em;
+    border-radius: 4px;
+    color: var(--vt-c-text-code);
+    transition: color .5s,background-color .5s;
+}
+.markdown-body pre {
+    position: relative;
+    margin: 28px -24px;
+    background-color: #292d3e;
+    overflow-x: auto;
+    transition: background-color .5s;
+}
+.markdown-body pre ol, .markdown-body pre code {
+    text-align: left;
+    white-space: pre;
+    word-spacing: normal;
+    word-break: normal;
+    word-wrap: normal;
+    -moz-tab-size: 4;
+    -o-tab-size: 4;
+    tab-size: 4;
+    -webkit-hyphens: none;
+    -moz-hyphens: none;
+    -ms-hyphens: none;
+    hyphens: none;
+}
+.markdown-body pre ol{
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    padding: 14px 24px;
+    background: transparent;
+    overflow-x: auto;
+}
+.markdown-body pre code {
+    display: inline-block;
+    padding: 0;
+    line-height: var(--vt-doc-code-line-height);
+    font-size: var(--vt-doc-code-font-size);
+    color: #a6accd;
+    transition: color .5s;
+}
+@media (min-width: 640px){
+    .markdown-body pre {
+        margin: 28px 0;
+        border-radius: 8px;
+    }
+}
+@media (min-width: 768px){
+    .markdown-body :not(pre,li)>code{
+        white-space: nowrap;
+    }
+}
+@media (max-width: 768px){
+    .markdown-body h1 {
+        font-size: 32px;
+        margin-bottom: 1.8rem;
+    }
+    
+}
+
+/* table */
+.markdown-body table {
+    display: block;
+    width: 100%;
+    overflow: auto;
+    word-break: normal;
+    word-break: keep-all;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+.editormd-preview-container table thead tr, .editormd-html-preview table thead tr {
+    background-color: #F8F8F8;
+}
+.markdown-body table tr {
+    background-color: #fff;
+    border-top: 1px solid #ccc;
+}
+.markdown-body table th, .markdown-body table td {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+}
+.markdown-body table th {
+    font-weight: bold;
+}
+
+/* 字体颜色 */
+.pln {
+    color: #a6accd;
+}
+  
+/* plain text */
+@media screen {
+    .str {
+        color: #C3E88D;
+    }
+
+    /* string content */
+    .kwd {
+        color: #82AAFF;
+    }
+
+    /* a keyword */
+    .com {
+        color: #676E95;
+    }
+
+    /* a comment */
+    .typ {
+        color: #C792EA;
+    }
+
+    /* a type name */
+    .lit {
+        color: #89DDFF;
+    }
+
+    /* a literal value */
+    /* punctuation, lisp open bracket, lisp close bracket */
+    .pun, .opn, .clo {
+        color: #FFCB6B;
+    }
+
+    .tag {
+        color: #F07178;
+    }
+
+    /* a markup tag name */
+    .atn {
+        color: #C792EA;
+    }
+
+    /* a markup attribute name */
+    .atv {
+        color: #C3E88D;
+    }
+
+    /* a markup attribute value */
+    .dec, .var {
+        color: #606;
+    }
+
+    /* a declaration; a variable name */
+    .fun {
+        color: red;
+    }
+
+/* a function name */
+}
+/* Use higher contrast and text-weight for printable form. */
+@media print, projection {
+.str {
+    color: #C3E88D;
+}
+
+.kwd {
+    color: #82AAFF;
+    font-weight: bold;
+}
+
+.com {
+    color: #676E95;
+    font-style: italic;
+}
+
+.typ {
+    color: #C792EA;
+    font-weight: bold;
+}
+
+.lit {
+    color: #89DDFF;
+}
+
+.pun, .opn, .clo {
+    color: #FFCB6B;
+}
+
+.tag {
+    color: #F07178;
+    font-weight: bold;
+}
+
+.atn {
+    color: #404;
+}
+
+.atv {
+    color: #C3E88D;
+}
+}
+</style>
+
+

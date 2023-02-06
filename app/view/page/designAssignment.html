@@ -1,0 +1,223 @@
+{% extends 'template/jhTemplateV3.html'%}
+{% set appId = ctx.app.config.appId %}
+{% set static = "/" + appId + "/public" %}
+
+{% block css %}
+
+<link type="text/css" href="<$ static $>/jsoneditor/jsoneditor.css" rel="stylesheet">
+<script src="<$ static $>/jsoneditor/jsoneditor.js"></script>
+{% endblock %}
+{% block vue_template %}
+
+<jh-layout-v3>
+  <template slot="breadcrumbsTitle">
+    【{{ title }}】的作业设计
+    <span style="font-size: 1rem;" :class="{'d-block': isMobile}">(ID: {{ articleId }})</span>
+  </template>
+
+  <template slot="serverSearch">
+    <v-row class="ma-0 align-center flex-none pa-0" :class="{'pa-2': !isMobile, 'pa-2': isMobile}" align="center" style="height: 100%;">
+      <v-col class="d-flex" :class="{'pt-2': isMobile, 'pl-0': isMobile, 'pr-0': !isMobile}" style="justify-content: end">
+        <v-btn color="success" dark class="elevation-0 mr-2" v-if="article && article.articleAssignmentPublishStatus !== 'publish'" @click="doUiAction('saveArticleAssignment', false)">保存</v-btn>
+        <v-btn color="error" dark class="elevation-0 mr-2" v-if="article && article.articleAssignmentPublishStatus !== 'publish'" @click="doUiAction('saveArticleAssignment', 'publish')">提交</v-btn>
+        <div v-else>
+          <v-btn color="error" dark class="elevation-0 mr-2" disabled >已提交，不能修改</v-btn>
+          <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('saveArticleAssignment', 'cancel')">撤销提交</v-btn>
+        </div>
+      </v-col>
+    </v-row>
+  </template>
+  <template slot-scope="props" style="height: calc(100vh - 300px)">
+    <tpl-form-design :form="articleAssignmentWithAnswer">
+    </tpl-form-design>
+  </template>
+</jh-layout-v3>
+
+{% endblock %}
+
+{% block vue_body %}
+
+
+{% include 'component/tpl/formItemListGenerator.html' %}
+{% include 'component/tpl/tplFormDesign.html' %}
+{% include 'component/vueJsonEditor.html' %}
+
+<script type="module">
+  new Vue({
+    el: '#app',
+    template: '#app-template',
+    vuetify: new Vuetify(),
+    data: () => ({
+      isMobile: window.innerWidth < 600,
+      formItemListPreviewDrawer: false,
+      articleId: null,
+      article: null,
+      title: null,
+      saveActionData: {},
+      articleAssignmentWithAnswer: [],
+      codemirrorOptions: {
+        mode: 'application/json' ,
+        theme: 'material-darker',
+        indentUnit: 4,
+        smartIndent: false,
+        tabSize: 4,
+        indentWithTabs: true,
+      },
+      formItemList: []
+    }),
+    watch: {
+      articleAssignmentWithAnswer: {
+        deep: true,
+        handler() {
+          this.buildFormItemList();
+        }
+      }
+    },
+    async created() {
+      const urlParams = new URLSearchParams(location.search);
+      const articleId = urlParams.get('articleId');
+      const title = urlParams.get('title');
+      if (articleId) {
+        this.articleId = articleId;
+      }
+      if (title) {
+        this.title = title;
+      }
+      this.doUiAction('selectArticleAssignment', articleId);
+    },
+    mounted() {},
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'selectArticleAssignment':
+            await this.selectArticleAssignment(uiActionData);
+            await this.buildArticleAssignmentWithAnswer(uiActionData);
+            break;
+          case 'saveArticleAssignment':
+            await this.vaildArticleAssignment(uiActionData);
+            await this.buildAssignmentItemFile(uiActionData);
+            await this.createSaveActionData(uiActionData);
+            await this.saveArticleAssignmentRequest(uiActionData);
+            await this.syncArticleAssignmentPublishStatus(uiActionData);
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+      },
+      buildFormItemList () {
+        let list = []
+        if (this.articleAssignmentWithAnswer) {
+          list = _.cloneDeep(this.articleAssignmentWithAnswer);
+          list.forEach(item => {
+            // delete item.answerData;
+            item.userData = {};
+          })
+        }
+        return list;
+      },
+      // 获取作业详情
+      async selectArticleAssignment(articleId) {
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'designAssignment',
+              actionId: 'selectAssignment',
+              where: { articleId: this.articleId }
+            }
+          }
+        });
+
+        if (result.data.appData.resultData.rows.length < 1) {
+          window.vtoast.fail("文章不存在");
+          return;
+        }
+
+        this.article = result.data.appData.resultData.rows[0];
+      },
+
+      buildArticleAssignmentWithAnswer() {
+        const articleAssignmentWithAnswer = JSON.parse(this.article.articleAssignmentWithAnswer || '[]');
+        _.forEach(articleAssignmentWithAnswer, (item, index) => {
+          if (!item.hasOwnProperty('upload')) {
+            item.upload = [];
+          }
+          if (!item.hasOwnProperty('file')) {
+            item.file = {};
+          }
+        })
+        this.articleAssignmentWithAnswer = articleAssignmentWithAnswer;
+      },
+
+      // 保存作业
+      async vaildArticleAssignment (articleAssignmentPublishStatus) {
+        if (!this.article) {
+          window.vtoast.fail("文章不存在");
+          throw new Error("[saveArticleAssignment：文章不存在]")
+        }
+
+        if (articleAssignmentPublishStatus === 'publish' && !await window.confirmDialog({ title: '提交后请勿再次修改保存', content: '确定提交吗？' })) {
+          throw new Error("[saveArticleAssignment:confirmDialog：提交后请勿再次修改保存,确定提交吗], 否")
+        }
+      },
+      buildAssignmentItemFile() {
+        _.forEach(this.articleAssignmentWithAnswer, (item, index) => {
+          item.file = {}
+          _.forEach(item.upload, (type, i) => {
+            item.file[type] = '';
+          })
+        })
+      },
+      createSaveActionData(articleAssignmentPublishStatus) {
+        this.saveActionData = {};
+        const articleAssignment = _.cloneDeep(this.articleAssignmentWithAnswer);
+        articleAssignment.forEach(formItem => {
+          formItem.answerData = {};
+        })
+        this.saveActionData = {
+          articleAssignmentWithAnswer: JSON.stringify(this.articleAssignmentWithAnswer),
+          articleAssignment: JSON.stringify(articleAssignment),
+        };
+        if (articleAssignmentPublishStatus === 'publish') {
+          this.saveActionData.articleAssignmentPublishStatus = articleAssignmentPublishStatus;
+        }
+        if (articleAssignmentPublishStatus === 'cancel') {
+          this.saveActionData.articleAssignmentPublishStatus = null;
+        }
+      },
+      async saveArticleAssignmentRequest(articleAssignmentPublishStatus) {
+        window.vtoast.loading("保存");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'designAssignment',
+              actionId: 'updateAssignment',
+              actionData: this.saveActionData,
+              where: {articleId: this.articleId}
+            }
+          }
+        });
+        const msg = articleAssignmentPublishStatus === 'publish' ? '提交成功' : articleAssignmentPublishStatus === 'cancel' ? "撤销成功" : "保存成功";
+        window.vtoast.success(msg);
+      },
+      syncArticleAssignmentPublishStatus(articleAssignmentPublishStatus) {
+        if (articleAssignmentPublishStatus) {
+          this.article.articleAssignmentPublishStatus = articleAssignmentPublishStatus === 'publish' ? articleAssignmentPublishStatus : null;
+        }
+      }
+    },
+  })
+</script>
+
+<style scoped>
+html {
+  height: 100vh;
+  overflow-y: hidden;
+  min-width: 950px;
+  overflow-x: scroll;
+}
+.v-list-item {
+    height: unset;
+}
+</style>
+{% endblock %}

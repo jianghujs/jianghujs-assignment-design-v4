@@ -1,0 +1,83 @@
+<script>
+class GlobalHandler {
+
+  async confirmEditItemDialog(label) {
+    if (!await window.confirmDialog({ title: label, content: `确定${label}吗？` })) {
+      throw new Error(`[confirmEditItemDialog ${label}] 取消`);
+    }
+  }
+
+  async editItemSuccess(label, that) {
+    await window.vtoast.success(`${label}数据成功`);
+    that.isEditDrawerShow = false;
+  }
+
+
+  async validateSaveItem(that) {
+    if (!that.$refs.form.validate()) {
+      window.vtoast.fail('数据不合法');
+      throw new Error('[validateSaveItem] 数据不合法');
+    }
+  }
+
+  /**
+   * 常量解析
+   */
+  parseConstantValue(key, _value, constantCollection) {
+    const constantCollectionItemFind = constantCollection[key].find(({ value }) => value === _value);
+    if (constantCollectionItemFind) {
+      return constantCollectionItemFind.text;
+    }
+    return _value;
+  }
+
+  /**
+   * 点击表格数据按钮
+   */
+  async handleTableButton(button, that) {
+    switch (button.buttonType) {
+      case 'edit':
+        that.currentClickButton = { action: 'edit', title: '修改' };
+        that.editItem = { ...button.item };
+        that.isEditDrawerShow = true;
+        break;
+      case 'add':
+        that.currentClickButton = { action: 'add', title: '新增' };
+        that.editItem = {};
+        that.isEditDrawerShow = true;
+        break;
+      case 'delete':
+        that.editItem = { ...button.item };
+        await that.doUiAction('deleteItem', button.item);
+        break;
+      case 'restore':
+        that.editItem = { ...button.item };
+        await that.doUiAction('restoreItem', button.item);
+        break;
+    }
+  }
+
+  setHeaderThToFixed(that) {
+    if (!that.isMobile) {
+      that.headers[that.headers.length - 1].class = 'fixed'
+      that.headers[that.headers.length - 1].cellClass = 'fixed'
+      if(that.articleHeaders) {
+        that.articleHeaders[that.articleHeaders.length - 1].class = 'fixed'
+        that.articleHeaders[that.articleHeaders.length - 1].cellClass = 'fixed'
+      }
+    }
+  }
+
+
+  /**
+   * 获取并设置页面路径参数
+   */
+  getLocationParams(key, that) {
+    const urlParams = new URLSearchParams(location.search);
+    const value = urlParams.get(key);
+    if (value) {
+      that.serverSearchForm[key] = value;
+    }
+  }
+}
+</script>

@@ -1,0 +1,346 @@
+{% extends 'template/jhTemplateV4.html'%}
+
+{% block vueTemplate %}
+<script type="text/html" id="app-template">
+  <div>
+    <!-- 页面主要内容 -->
+  <v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
+    <v-card>
+      <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 "
+        :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+
+        <v-btn color="success" dark class="elevation-0 mr-2"
+        @click="doUiAction('startCreateItem')">新增</v-btn>
+        <span style="margin-right: 10px;">{{serverSearchInput.searchSummary}}</span>
+        <!-- <span class="body-2">共{{ tableDataFromBackend.length }}条记录</span> -->
+
+        <v-spacer></v-spacer>
+
+        <v-col cols="12" xs="8" sm="3" md="3" xl="3" class="pa-xs-0 pa-xs-2 col-sm-8-flex pl-0">
+          <v-text-field v-model="searchInput" prefix="结果过滤" class="cus-v-input" dense filled single-line></v-text-field>
+        </v-col>
+      </v-row>
+      <v-data-table fixed-header :headers="headers" :items="tableDataFromBackend" :search="searchInput"
+        :footer-props="{ itemsPerPageOptions: [-1, 20, 40, 60, 100, 200] }" :items-per-page="-1" mobile-breakpoint="0"
+        :loading="isTableLoading" checkbox-color="success" class="elevation-0">
+        <template v-slot:item.articlePublishStatus="{ item }">
+          {{ parseConstantValue('articlePublishStatus', item.articlePublishStatus) }}
+        </template>
+        <template v-slot:item.action="{ item }">
+          <v-btn small class="mr-2 success" @click="doUiAction('startUpdateItem', {item})">编辑</v-btn>
+          <v-btn small class="mr-2 success" @click="doUiAction('assignmentDesignPage', {item})">编辑作业</v-btn>
+          <v-btn small class="mr-2 success" @click="doUiAction('homeworkPage', {item})">模拟做作业</v-btn>
+          <v-btn small class="mr-2 error" @click="doUiAction('deleteItem', {item})">删除</v-btn>
+        </template>
+      </v-data-table>
+    </v-card>
+  </v-container>
+
+  <v-overlay app :value="isEditDrawerShow"></v-overlay>
+  <!-- 编辑抽屉 -->
+  <v-navigation-drawer v-model="isEditDrawerShow" fixed temporary right width="80%"
+                        class="elevation-24">
+    <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
+      <v-row class="pt-8">
+        <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">{{ currentClickButton.title }}信息</span>
+        <v-spacer></v-spacer>
+        <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
+          <v-icon dark>mdi-close</v-icon>
+        </v-btn>
+      </v-row>
+      <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">作业标题</span>
+          <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="editItem.articleTitle" :rules="requireRules"></v-text-field>
+        </v-col>
+      </v-row>
+      <v-row class="justify-end pr-6">
+        <v-btn color="success" @click="doUiAction(dialogSaveInfoAction)" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mb-2': isMobile, 'mr-4': isMobile}">保存</v-btn>
+        <v-btn class="ml-2 mr-2" @click="isEditDrawerShow = false" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mr-4': isMobile}">取消</v-btn>
+      </v-row>
+    </v-form>
+  </v-navigation-drawer>
+  </div>
+</script>
+{% endblock %}
+
+{% block vueScript %}
+{% include 'component/singleSelectDialog.html' %}
+<script type="module">
+  new Vue({
+    el: '#app',
+    template: '#app-template',
+    vuetify: new Vuetify(),
+    data: () => ({
+      isMobile: window.innerWidth < 600,
+      selectCategoryDialog: false,
+      // 表格相关数据
+      isFormValid: true,
+      requireRules: [
+        v => !!v || 'This is required',
+      ],
+      constantCollection: {
+        articlePublishStatus: [
+          { text: "登录可见", value: "login" },
+          { text: "草稿", value: "draft" },
+          { text: "回收站", value: "deleted" },
+        ],
+        allArticlePublishStatus: [
+          { text: "登录可见", value: "login" },
+          { text: "草稿", value: "draft" },
+          { text: "回收站", value: "deleted" },
+        ],
+        category: [
+          { text: "全部类目", value: "all" },
+        ],
+      },
+
+      categoryIdToName: {},
+      serverSearchInput: {
+        articleTitle: null,
+        categoryId: "all",
+        categoryName: "筛选版本",
+        articlePublishStatus: ['login'],
+        isFirstSearch: true,
+        searchSummary: null,
+      },
+      currentTableGenderType: 'all',
+      isEditDrawerShow: false,
+      searchInput: null,
+      isTableLoading: true,
+      tableDataFromBackend: [],
+      headers: [
+        { text: "ID", value: "articleId", width: 100, class: 'fixed', cellClass: 'fixed' },
+        { text: "作业标题", value: "articleTitle", width: 300 },
+        { text: "创建时间", value: "articleCreateTime", width: 220, edit: false },
+        { text: '操作', value: 'action', align: 'center', sortable: false, width: 350 },
+      ],
+
+      currentClickButton: { title: '新增', action: 'add' },
+      editItem: {},
+      dialogSaveInfoAction: ''
+    }),
+    watch: {
+    },
+    async created() {
+      if (!this.isMobile) {
+        this.headers[this.headers.length - 1].class = 'fixed'
+        this.headers[this.headers.length - 1].cellClass = 'fixed'
+      }
+
+      await this.doUiAction('refreshTableData');
+    },
+    async mounted() {
+    },
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'refreshTableData':
+            await this.refreshTableData(uiActionData);
+            break;
+          case 'startCreateItem':
+            await this.clearItemData(uiActionData);
+            await this.openCreateItemDialog(uiActionData);
+            break;
+          case 'createItem':
+            await this.prepareValidate(uiActionData);
+            await this.confirmCreateItemDialog(uiActionData);
+            await this.doCreateItem(uiActionData);
+            await this.refreshTableData(uiActionData);
+            await this.closeDrawerShow(uiActionData);
+            break;
+          case 'startUpdateItem':
+            await this.prepareItemData(uiActionData);
+            await this.openUpdateItemDialog(uiActionData);
+            break;
+          case 'updateItem':
+            await this.prepareValidate(uiActionData);
+            await this.confirmUpdateItemDialog(uiActionData);
+            await this.doUpdateItem(uiActionData);
+            await this.refreshTableData(uiActionData);
+            await this.closeDrawerShow(uiActionData);
+            break;
+          case 'deleteItem':
+            await this.confirmDeleteItemDialog(uiActionData);
+            await this.prepareItemData(uiActionData);
+            await this.doDeleteItem(uiActionData);
+            await this.refreshTableData(uiActionData);
+            break;
+          case 'assignmentDesignPage':
+            await this.goToAssignmentDesignPage(uiActionData);
+            break;
+          case 'homeworkPage':
+            await this.goHomeworkPage(uiActionData);
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+      },
+      /**
+       * 获取表格数据
+       */
+      async refreshTableData() {
+        this.isTableLoading = true;
+        const serverSearchInput = _.pickBy(this.serverSearchInput, value => !!value);
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'articleManagement',
+              actionId: 'selectItemList',
+              where: {
+                articlePublishStatus: null
+              },
+              whereLike: {
+                articleTitle: this.serverSearchInput.articleTitle,
+              },
+              limit: (this.serverSearchInput.isFirstSearch && this.serverSearchInput.categoryId === 'all') ? 200 : 99999999,
+              orderBy: [{ column: 'id', order: 'desc' }]
+            }
+          }
+        });
+
+        this.tableDataFromBackend = result.data.appData.resultData.rows;
+        this.isTableLoading = false;
+      },
+
+      // startCreateItem
+      async clearItemData() {
+        this.editItem = {};
+      },
+
+      async openCreateItemDialog() {
+        this.currentClickButton = { action: 'add', title: '新增' };
+        this.isEditDrawerShow = true;
+        this.dialogSaveInfoAction = 'createItem';
+      },
+
+      // createItem
+      async prepareValidate() {
+        if (await this.$refs.form.validate() === false) {
+          throw new Error("[prepareValidate] false");
+        }
+      },
+
+      // createItem
+      async confirmCreateItemDialog() {
+        if (await window.confirmDialog({ title: "新增", content: "确定新增吗？" }) === false) {
+          throw new Error("[confirmCreateFormDialog] 否");
+        }
+      },
+      /**
+       * 新增数据
+       */
+      async doCreateItem() {
+        delete this.editItem.id;
+
+        const { id, ...data } = this.editItem;
+        await window.vtoast.loading("新增数据");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'articleManagement',
+              actionId: 'jhInsertItem',
+              actionData: data
+            }
+          }
+        })
+        await window.vtoast.success("新增数据成功");
+      },
+
+      async closeDrawerShow() {
+        this.isEditDrawerShow = false;
+      },
+
+      // startUpdateItem
+      async prepareItemData({ item }) {
+        this.editItem = { ...item };
+      },
+
+      async openUpdateItemDialog() {
+        this.currentClickButton = { action: 'edit', title: '修改' };
+        this.isEditDrawerShow = true;
+        this.dialogSaveInfoAction = 'updateItem';
+      },
+
+      // updateItem
+      async confirmUpdateItemDialog() {
+        if (await window.confirmDialog({ title: "修改", content: "确定修改吗？" }) === false) {
+          throw new Error("[confirmUpdateItemDialog] 否");
+        }
+      },
+
+      /**
+       * 保存数据
+       */
+      async doUpdateItem() {
+        const id = this.editItem.id;
+        delete this.editItem.id;
+        await window.vtoast.loading("修改数据");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'articleManagement',
+              actionId: 'jhUpdateItem',
+              actionData: this.editItem,
+              where: { id: id }
+            }
+          }
+        })
+        await window.vtoast.success("修改数据成功");
+      },
+
+      // deleteItem
+      async confirmDeleteItemDialog() {
+        if (await window.confirmDialog({ title: "删除", content: "确定删除吗？" }) === false) {
+          throw new Error("[confirmDeleteItemDialog] 否");
+        }
+      },
+      /**
+       * 删除数据
+       */
+      async doDeleteItem({ item }) {
+        await window.vtoast.loading("删除数据");
+        const { articleId } = item;
+        console.log(articleId)
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'articleManagement',
+              actionId: 'deletedArticle',
+              actionData: { articleId },
+            }
+          }
+        });
+        await window.vtoast.success("删除数据成功");
+      },
+
+      /**
+       * 常量解析
+       */
+      parseConstantValue(key, _value) {
+        const constantCollectionItemFind = this.constantCollection[key].find(({ value }) => value === _value);
+        if (constantCollectionItemFind) {
+          return constantCollectionItemFind.text;
+        }
+        return _value;
+      },
+
+      // 跳转作业详情
+      goToAssignmentDesignPage({ item }) {
+        const { articleId, articleTitle } = item;
+        window.open(`/${window.appInfo.appId}/page/designAssignment?articleId=${articleId}&title=${articleTitle}`);
+      },
+
+      // 跳转做作业
+      goHomeworkPage({ item }) {
+        const { articleId, articleTitle } = item;
+        window.open(`/${window.appInfo.appId}/page/assignmentHomework?articleId=${articleId}&title=${articleTitle}`);
+      }
+    }
+  })
+</script>
+
+<style scoped>
+</style>
+{% endblock %}
