@@ -124,21 +124,9 @@
         default: ""
       },
     },
+    inject: ["formItemSelect", "uuid", "optionKey"],
     data: () => ({
       markdownReady: [],
-      optionKey: {
-        0: "A",
-        1: "B",
-        2: "C",
-        3: "D",
-        4: "E",
-        5: "F",
-        6: "G",
-        7: "H",
-        8: "I",
-        9: "J",
-        10: "K",
-      },
     }),
     watch: {
       formItemList: {
@@ -150,13 +138,7 @@
         }
       }
     },
-    created() {
-      console.log('this.formItemList', this.formItemList)
-    },
     methods: {
-      formItemSelect(index) {
-        this.$emit('update:select-canva-id', index)
-      },
       updateMarkdownValue(event) {
         if (!this.selectedFormItem.component) return
         this.selectedFormItem.component.answer = event
@@ -217,15 +199,6 @@
             })
           }
         })
-      },
-      uuid(t = 21) {
-        let e = "", r = crypto.getRandomValues(new Uint8Array(t));
-        for (; t--;) {
-          let n = 63 & r[t];
-          e += n < 36 ? n.toString(36) : n < 62 ? (n - 26).toString(36).toUpperCase() : n < 63 ? "_" : "-"
-        }
-        ;
-        return e
       },
     },
   })

@@ -220,7 +220,6 @@
 </template>
 
 <script src="/<$ ctx.app.config.appId $>/public/js/lib/Sortable.min.js"></script>
-<!-- <script src="/<$ ctx.app.config.appId $>/public/js/lib/vuedraggable.umd.min.js"></script> -->
 <script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.20.0/vuedraggable.umd.min.js"></script>
 
 <script>
@@ -240,20 +239,9 @@
         default: ""
       },
     },
+    inject: ["formItemSelect", "uuid", "optionKey"],
     data: () => ({
-      optionKey: {
-        0: "A",
-        1: "B",
-        2: "C",
-        3: "D",
-        4: "E",
-        5: "F",
-        6: "G",
-        7: "H",
-        8: "I",
-        9: "J",
-        10: "K",
-      },
+      
       constantCollection: {
         // text - 题目 input - 填空
         fillBlankType: {
@@ -363,7 +351,7 @@
     },
     methods: {
       formItemSelect(index) {
-        this.$emit('update:select-canva-id', index)
+        this.$parent.formItemSelect(index)
       },
       resetAnswer(index, type) {
         // 由于组件ui 选中时改变题目bug，动态设置现有选中答案
@@ -492,15 +480,7 @@
       datadragEndSub(index, event) {
         console.log(index, event)
       },
-      uuid(t = 21) {
-        let e = "", r = crypto.getRandomValues(new Uint8Array(t));
-        for (; t--;) {
-          let n = 63 & r[t];
-          e += n < 36 ? n.toString(36) : n < 62 ? (n - 26).toString(36).toUpperCase() : n < 63 ? "_" : "-"
-        }
-        ;
-        return e
-      },
+      
 
     },
   })

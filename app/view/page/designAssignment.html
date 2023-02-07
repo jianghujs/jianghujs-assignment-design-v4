@@ -35,7 +35,7 @@
         <form-item-list-generator
         :form-item-list="articleAssignmentWithAnswer"
         @change="saveData"
-        :select-canva-id.sync="selectCanvaId"
+        :select-canva-id="selectCanvaId"
         ref="formItemListGenerator"/>
       </div>
     </v-container>
@@ -52,6 +52,9 @@
 {% endblock %}
 
 {% block vueScript %}
+<link rel="stylesheet" href="/<$ ctx.app.config.appId $>/public/plugins/editor.md/css/editormd.min.css"/>
+<script src="/<$ ctx.app.config.appId $>/public/js/lib/jquery.min.js"></script>
+<script src="/<$ ctx.app.config.appId $>/public/plugins/editor.md/editormd.js"></script>
 
 
 {% include 'component/formItemMarkdown.html' %}
@@ -66,7 +69,19 @@
     data: () => ({
       formItemList: [],
       selectCanvaId: '',
-
+      optionKey: {
+        0: "A",
+        1: "B",
+        2: "C",
+        3: "D",
+        4: "E",
+        5: "F",
+        6: "G",
+        7: "H",
+        8: "I",
+        9: "J",
+        10: "K",
+      },
       breadcrumbs: [
         {
           text: '文章管理',
@@ -239,9 +254,29 @@
           this.article.articleAssignmentPublishStatus = articleAssignmentPublishStatus === 'publish' ? articleAssignmentPublishStatus : null;
         }
       },
+      // 作业设计card选中的状态变更
       formItemSelect(index) {
         this.selectCanvaId = index
       },
+      // 作业card生成随机id
+      uuid(t = 21) {
+        let e = "", r = crypto.getRandomValues(new Uint8Array(t));
+        for (; t--;) {
+          let n = 63 & r[t];
+          e += n < 36 ? n.toString(36) : n < 62 ? (n - 26).toString(36).toUpperCase() : n < 63 ? "_" : "-"
+        }
+        ;
+        return e
+      },
+    },
+    // 使用provide将方法传递给下层所有组件
+    // 直接传selectCanvaId更新group里的内容点击更新不了
+    provide() {
+      return {
+        formItemSelect: this.formItemSelect,
+        uuid: this.uuid,
+        optionKey: this.optionKey
+      };
     },
   })
 </script>
