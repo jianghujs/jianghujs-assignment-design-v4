@@ -1,20 +1,16 @@
 <template id="form-item-list-generator">
-  <v-card color="#f5f8fa" style="max-height: 100%" :class="{'d-flex': !isMobile, 'form-item-list-generator-content': !isMobile}">
+  <v-card color="#f5f8fa" style="max-height: 100%"
+    :class="{'d-flex': !isMobile, 'form-item-list-generator-content': !isMobile}">
     <v-card style="max-height: 100%; overflow-y: auto;" :style="{'width': isMobile ? '100%' : '300px'}"
-            :class="{'pa-4': !isMobile, 'pa-2': isMobile, 'mr-6': !isMobile}">
+      :class="{'pa-4': !isMobile, 'pa-2': isMobile, 'mr-6': !isMobile}">
       <div class="left-component-item-title" :style="{'white-space': 'nowrap'}">
         <v-icon>mdi-puzzle-outline</v-icon>
         <span style="transform: translateY(2px); display: inline-block;">组件</span>
       </div>
-      <draggable
-          :group="{ name: 'componentGroup', pull: 'clone', put: false }"
-          :list="componentList"
-          draggable=".left-component-item"
-          :clone="cloneComponent"
-          @end="leftComponentDraggableOnEnd">
-        <div class="left-component-item"
-             v-for="(component, index) in componentList" :key="index"
-             @click="addFormItem(component)">
+      <draggable :group="{ name: 'componentGroup', pull: 'clone', put: false }" :list="componentList"
+        draggable=".left-component-item" :clone="cloneComponent" @end="leftComponentDraggableOnEnd">
+        <div class="left-component-item" v-for="(component, index) in componentList" :key="index"
+          @click="addFormItem(component)">
           <div class="left-component-item-body">
             <v-icon small class="mr-1">{{ component.icon }}</v-icon>
             {{ component.typeDesc }}
@@ -29,14 +25,21 @@
         <v-btn small color="error" @click.stop="emptyCanva" class="mr-2">
           <span>重置</span>
         </v-btn>
-      </v-btn>
+        </v-btn>
 
       </div>
-      <form-item-list-content :selected-form-item="selectedFormItem" :form-item-list="formItemList" />
+      <form-item-list-content
+        :selected-form-item="selectedFormItem"
+        :form-item-list="formItemList"
+        :select-canva-id="selectCanvaId"
+        :form-item-select="formItemSelect"
+        @update-select-canva-id="formItemSelect"
+      />
 
     </v-card>
 
-    <v-card style="max-height: 100%; overflow-y: auto;" :style="{'width': isMobile ? 'auto' : '300px'}" class="pa-4" :class="{'ml-6': !isMobile}">
+    <v-card style="max-height: 100%; overflow-y: auto;" :style="{'width': isMobile ? 'auto' : '300px'}" class="pa-4"
+      :class="{'ml-6': !isMobile}">
       <div class="property-title">
         <v-icon>mdi-application-edit-outline</v-icon>
         <span style="transform: translateY(2px); display: inline-block;">组件属性</span>
@@ -48,79 +51,38 @@
               <v-row no-gutters>
                 <span class="inputLabel">附件上传配置</span>
                 <v-col cols="12">
-                  <v-checkbox
-                    class="mt-0"
-                    v-model="selectedFormItem.component.uploadConfig"
-                    label="图片"
-                    value="img"
-                    hide-details
-                    style="display: inline-block; margin: 0 20px"
-                  ></v-checkbox>
-                  <v-checkbox
-                    class="mt-0"
-                    v-model="selectedFormItem.component.uploadConfig"
-                    label="音频"
-                    value="audio"
-                    hide-details
-                    style="display: inline-block; margin-right: 20px"
-                  ></v-checkbox>
-                  <v-checkbox
-                    class="mt-0"
-                    v-model="selectedFormItem.component.uploadConfig"
-                    label="视频"
-                    value="video"
-                    hide-details
-                    style="display: inline-block;"
-                  ></v-checkbox>
+                  <v-checkbox class="mt-0" v-model="selectedFormItem.component.uploadConfig" label="图片" value="img"
+                    hide-details style="display: inline-block; margin: 0 20px"></v-checkbox>
+                  <v-checkbox class="mt-0" v-model="selectedFormItem.component.uploadConfig" label="音频" value="audio"
+                    hide-details style="display: inline-block; margin-right: 20px"></v-checkbox>
+                  <v-checkbox class="mt-0" v-model="selectedFormItem.component.uploadConfig" label="视频" value="video"
+                    hide-details style="display: inline-block;"></v-checkbox>
                 </v-col>
               </v-row>
             </v-col>
             <v-col cols="12">
               <span class="inputLabel">参考分数</span>
-              <v-textarea class="cus-v-input"
-                dense
-                filled
-                single-line
-                color="success"
-                v-model="selectedFormItem.component.score"
-                auto-grow :rows="1"
-                >
+              <v-textarea class="cus-v-input" dense filled single-line color="success"
+                v-model="selectedFormItem.component.score" auto-grow :rows="1">
               </v-textarea>
               <span class="inputLabel">题目</span>
-              <v-textarea class="cus-v-input"
-                dense
-                filled
-                single-line
-                color="success"
-                v-model="selectedFormItem.component.statement"
-                auto-grow :rows="1"
-                >
+              <v-textarea class="cus-v-input" dense filled single-line color="success"
+                v-model="selectedFormItem.component.statement" auto-grow :rows="1">
               </v-textarea>
               <div style="display: flex; flex-direction: row;justify-content: space-between; align-items: center;">
                 <v-subheader class="pa-0">选项列表</v-subheader>
-                <v-btn icon
-                       @click.stop="propertyAddOption(selectedFormItem.component.selectOptionList.length)">
+                <v-btn icon @click.stop="propertyAddOption(selectedFormItem.component.selectOptionList.length)">
                   <v-icon dark color="grey lighten-1">mdi-plus-box</v-icon>
                 </v-btn>
               </div>
               <v-list class="propertyList" dense style="max-height: 300px; overflow-y: auto;">
                 <template v-for="(optionText, i) in selectedFormItem.component.selectOptionList">
-                  <v-list-item
-                      class="pa-0"
-                      :data-index="selectCanvaId"
-                      :key="selectCanvaId + '-' + i">
+                  <v-list-item class="pa-0" :data-index="selectCanvaId" :key="selectCanvaId + '-' + i">
                     <v-list-item-content>
-                      <v-textarea class="cus-v-input"
-                                  dense
-                                  :key="selectCanvaId + '-' + i"
-                                  filled
-                                  :prefix="optionKey[i]+': '"
-                                  single-line
-                                  color="success"
-                                  v-model="selectedFormItem.component.selectOptionList[i]"
-                                  auto-grow :rows="1"
-                                  @input="resetAnswer(selectCanvaId, selectedFormItem.component.type)"
-                      >
+                      <v-textarea class="cus-v-input" dense :key="selectCanvaId + '-' + i" filled
+                        :prefix="optionKey[i]+': '" single-line color="success"
+                        v-model="selectedFormItem.component.selectOptionList[i]" auto-grow :rows="1"
+                        @input="resetAnswer(selectCanvaId, selectedFormItem.component.type)">
                       </v-textarea>
                     </v-list-item-content>
                     <v-list-item-action class="ml-2">
@@ -138,45 +100,21 @@
           <v-row no-gutters>
             <span class="inputLabel">附件上传配置</span>
             <v-col cols="12">
-              <v-checkbox
-                class="mt-0"
-                v-model="selectedFormItem.component.uploadConfig"
-                label="图片"
-                value="img"
-                hide-details
-                style="display: inline-block; margin: 0 20px"
-              ></v-checkbox>
-              <v-checkbox
-                class="mt-0"
-                v-model="selectedFormItem.component.uploadConfig"
-                label="音频"
-                value="audio"
-                hide-details
-                style="display: inline-block; margin-right: 20px"
-              ></v-checkbox>
-              <v-checkbox
-                class="mt-0"
-                v-model="selectedFormItem.component.uploadConfig"
-                label="视频"
-                value="video"
-                hide-details
-                style="display: inline-block;"
-              ></v-checkbox>
+              <v-checkbox class="mt-0" v-model="selectedFormItem.component.uploadConfig" label="图片" value="img"
+                hide-details style="display: inline-block; margin: 0 20px"></v-checkbox>
+              <v-checkbox class="mt-0" v-model="selectedFormItem.component.uploadConfig" label="音频" value="audio"
+                hide-details style="display: inline-block; margin-right: 20px"></v-checkbox>
+              <v-checkbox class="mt-0" v-model="selectedFormItem.component.uploadConfig" label="视频" value="video"
+                hide-details style="display: inline-block;"></v-checkbox>
             </v-col>
           </v-row>
           <span class="inputLabel">参考分数</span>
-          <v-textarea class="cus-v-input"
-            dense
-            filled
-            single-line
-            color="success"
-            v-model="selectedFormItem.component.score"
-            auto-grow :rows="1"
-            >
+          <v-textarea class="cus-v-input" dense filled single-line color="success"
+            v-model="selectedFormItem.component.score" auto-grow :rows="1">
           </v-textarea>
           <span class="inputLabel">题目</span>
           <v-textarea class="cus-v-input" dense filled single-line label="多行文本" auto-grow :rows="1"
-                        v-model="selectedFormItem.component.statement"></v-textarea>
+            v-model="selectedFormItem.component.statement"></v-textarea>
 
 
         </v-card>
@@ -184,161 +122,97 @@
           <v-row no-gutters>
             <span class="inputLabel">附件上传配置</span>
             <v-col cols="12">
-              <v-checkbox
-                class="mt-0"
-                v-model="selectedFormItem.component.uploadConfig"
-                label="图片"
-                value="img"
-                hide-details
-                style="display: inline-block; margin: 0 20px"
-              ></v-checkbox>
-              <v-checkbox
-                class="mt-0"
-                v-model="selectedFormItem.component.uploadConfig"
-                label="音频"
-                value="audio"
-                hide-details
-                style="display: inline-block; margin-right: 20px"
-              ></v-checkbox>
-              <v-checkbox
-                class="mt-0"
-                v-model="selectedFormItem.component.uploadConfig"
-                label="视频"
-                value="video"
-                hide-details
-                style="display: inline-block;"
-              ></v-checkbox>
+              <v-checkbox class="mt-0" v-model="selectedFormItem.component.uploadConfig" label="图片" value="img"
+                hide-details style="display: inline-block; margin: 0 20px"></v-checkbox>
+              <v-checkbox class="mt-0" v-model="selectedFormItem.component.uploadConfig" label="音频" value="audio"
+                hide-details style="display: inline-block; margin-right: 20px"></v-checkbox>
+              <v-checkbox class="mt-0" v-model="selectedFormItem.component.uploadConfig" label="视频" value="video"
+                hide-details style="display: inline-block;"></v-checkbox>
             </v-col>
           </v-row>
           <span class="inputLabel">参考分数</span>
-          <v-textarea class="cus-v-input"
-            dense
-            filled
-            single-line
-            color="success"
-            v-model="selectedFormItem.component.score"
-            auto-grow :rows="1"
-            >
+          <v-textarea class="cus-v-input" dense filled single-line color="success"
+            v-model="selectedFormItem.component.score" auto-grow :rows="1">
           </v-textarea>
           <span class="inputLabel">题目</span>
-                        <template v-for="(item, index) in selectedFormItem.component.statement">
-                          <v-textarea
-                            v-model="item.value"
-                            hide-details
-                            class="cus-v-input mb-1"
-                            dense
-                            filled
-                            single-line
-                            color="success"
-                            auto-grow :rows="3"
-                            @input="nodeLoadingStatus = 'input'"
-                            :placeholder="item.type === 'text' ? '题目' : '填空'"
-                          >
-                              <template v-slot:append-outer>
-                                <div class="d-flex flex-column">
-                                  <v-menu
-                                    style="top: -12px"
-                                    offset-y
-                                  >
-                                    <template v-slot:activator="{ on, attrs }">
-                                    <v-chip
-                                      class="px-1"
-                                      small v-bind="attrs" v-on="on" :color="item.type === 'text' ? 'secondary' : 'success'"
-                                    >
-                                      {{ item.type === 'text' ? '题目' : '填空' }}
-                                    </v-chip>
-                                    </template>
-                                    <v-card>
-                                      <v-card-text class="pa-0">
-                                      <v-btn
-                                        v-for="(ty, key, i) in constantCollection.fillBlankType"
-                                        :key="i"
-                                        @click="selectedFormItem.component.statement[index].type = key"
-                                        text
-                                        color="primary"
-                                      >
-                                          {{ty}}
-                                        </v-btn>
-                                      </v-card-text>
-                                    </v-card>
-                                  </v-menu>
-                                  <v-menu
-                                  style="top: -12px"
-                                  offset-y
-                                >
-                                  <template v-slot:activator="{ on, attrs }">
-                                  <v-btn small v-bind="attrs" v-on="on" icon color="black" dark>
-                                    <v-icon >mdi-plus</v-icon>
-                                  </v-btn>
-                                  </template>
-                                  <v-card>
-                                    <v-card-text class="pa-0">
-                                    <v-btn
-                                      v-for="(type, key, i) in constantCollection.fillBlankType"
-                                      :key="i"
-                                      @click="addFillBlankLine(i, index, key)"
-                                      text
-                                      color="primary"
-                                    >
-                                        {{type}}
-                                      </v-btn>
-                                    </v-card-text>
-                                  </v-card>
-                                </v-menu>
-                                <v-menu
-                                  style="top: -12px"
-                                  offset-y
-                                >
-                                  <template v-slot:activator="{ on, attrs }">
-                                    <v-btn
-                                      small
-                                      v-bind="attrs"
-                                      v-on="on"
-                                      icon
-                                      color="black"
-                                      dark
-                                    >
-                                      <v-icon >mdi-dots-vertical</v-icon>
-                                    </v-btn>
-                                  </template>
+          <template v-for="(item, index) in selectedFormItem.component.statement">
+            <v-textarea v-model="item.value" hide-details class="cus-v-input mb-1" dense filled single-line
+              color="success" auto-grow :rows="3" @input="nodeLoadingStatus = 'input'"
+              :placeholder="item.type === 'text' ? '题目' : '填空'">
+              <template v-slot:append-outer>
+                <div class="d-flex flex-column">
+                  <v-menu style="top: -12px" offset-y>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-chip class="px-1" small v-bind="attrs" v-on="on"
+                        :color="item.type === 'text' ? 'secondary' : 'success'">
+                        {{ item.type === 'text' ? '题目' : '填空' }}
+                      </v-chip>
+                    </template>
+                    <v-card>
+                      <v-card-text class="pa-0">
+                        <v-btn v-for="(ty, key, i) in constantCollection.fillBlankType" :key="i"
+                          @click="selectedFormItem.component.statement[index].type = key" text color="primary">
+                          {{ty}}
+                        </v-btn>
+                      </v-card-text>
+                    </v-card>
+                  </v-menu>
+                  <v-menu style="top: -12px" offset-y>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn small v-bind="attrs" v-on="on" icon color="black" dark>
+                        <v-icon>mdi-plus</v-icon>
+                      </v-btn>
+                    </template>
+                    <v-card>
+                      <v-card-text class="pa-0">
+                        <v-btn v-for="(type, key, i) in constantCollection.fillBlankType" :key="i"
+                          @click="addFillBlankLine(i, index, key)" text color="primary">
+                          {{type}}
+                        </v-btn>
+                      </v-card-text>
+                    </v-card>
+                  </v-menu>
+                  <v-menu style="top: -12px" offset-y>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn small v-bind="attrs" v-on="on" icon color="black" dark>
+                        <v-icon>mdi-dots-vertical</v-icon>
+                      </v-btn>
+                    </template>
 
-                                  <v-card>
-                                    <v-card-text class="pa-0">
-                                    <v-btn
-                                      v-for="(type, i) in ['删除']"
-                                      :key="i"
-                                      @click="editFillBlankLine(selectCanvaId, index, type)"
-                                      text
-                                      color="primary"
-                                      :disabled="type === '粘贴'"
-                                    >
-                                        {{type}}
-                                      </v-btn>
-                                    </v-card-text>
-                                  </v-card>
-                                </v-menu>
-                                </div>
+                    <v-card>
+                      <v-card-text class="pa-0">
+                        <v-btn v-for="(type, i) in ['删除']" :key="i"
+                          @click="editFillBlankLine(selectCanvaId, index, type)" text color="primary"
+                          :disabled="type === '粘贴'">
+                          {{type}}
+                        </v-btn>
+                      </v-card-text>
+                    </v-card>
+                  </v-menu>
+                </div>
 
-                              </template>
-                            </v-textarea>
-                          </template>
+              </template>
+            </v-textarea>
+          </template>
 
         </v-card>
         <v-card class="mt-5" flat v-if="selectedFormItem.component.type === 'input'">
           <v-textarea class="cus-v-input" dense filled single-line label="单行文本" auto-grow :rows="1"
-                        v-model="selectedFormItem.component.statement"></v-textarea>
+            v-model="selectedFormItem.component.statement"></v-textarea>
         </v-card>
         <v-card class="mt-5" flat v-if="['displayText', 'questionGroup'].includes(selectedFormItem.component.type)">
           <span class="inputLabel">题目</span>
 
           <v-textarea class="cus-v-input" dense filled single-line label="多行文本" auto-grow :rows="1"
-                        v-model="selectedFormItem.component.statement"></v-textarea>
+            v-model="selectedFormItem.component.statement"></v-textarea>
 
 
         </v-card>
-        <v-card class="mt-5" flat v-if="['questionGroup', 'singleSelect', 'multipleSelect', 'fillBlank', 'textarea'].includes(selectedFormItem.component.type)">
+        <v-card class="mt-5" flat
+          v-if="['questionGroup', 'singleSelect', 'multipleSelect', 'fillBlank', 'textarea'].includes(selectedFormItem.component.type)">
           <span class="inputLabel">内容块</span>
-          <form-item-markdown :form-item-id="selectedFormItem.id" :value="selectedFormItem.component.markdownContent" @change="selectedFormItem.component.markdownContent=$event" :toolbar-icons="() => {
+          <form-item-markdown :form-item-id="selectedFormItem.id" :value="selectedFormItem.component.markdownContent"
+            @change="selectedFormItem.component.markdownContent=$event" :toolbar-icons="() => {
             return ['undo', 'redo']
           }" />
         </v-card>
@@ -352,106 +226,122 @@
 <script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.20.0/vuedraggable.umd.min.js"></script>
 
 <script>
-// 1. v-main 滚动条
-// 2. v-navigation-drawer 小屏幕 不要关闭
-Vue.component("form-item-list-generator", {
-  template: '#form-item-list-generator',
-  vuetify: new Vuetify(),
-  name: 'form-item-list-generator',
-  props: ['formItemList'],
-  data: () => ({
-    constantCollection:{
-      // text - 题目 input - 填空
-      fillBlankType: {
-        text: '题目',
-        input: '填空'
-      }
+  // 1. v-main 滚动条
+  // 2. v-navigation-drawer 小屏幕 不要关闭
+  Vue.component("form-item-list-generator", {
+    template: '#form-item-list-generator',
+    vuetify: new Vuetify(),
+    name: 'form-item-list-generator',
+    props: {
+      formItemList: {
+        type: Array,
+        default: () => []
+      },
+      selectCanvaId: {
+        type: String,
+        default: ""
+      },
     },
-    componentList: [
-      {typeDesc: '多行文本', type: 'textarea', statement: '多行文本', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea'},
-      {typeDesc: 'Markdown', type: 'markdown', statement: 'Markdown', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea'},
-      {
-        typeDesc: '单选',
-        type: 'singleSelect',
-        statement: '单选',
-        markdownContent: '',
-        selectOptionList: ['选项1', '选项2'],
-        uploadConfig: [],
-        answer: '',
-        score: '',
-        icon: 'mdi-checkbox-marked-circle'
+    data: () => ({
+      optionKey: {
+        0: "A",
+        1: "B",
+        2: "C",
+        3: "D",
+        4: "E",
+        5: "F",
+        6: "G",
+        7: "H",
+        8: "I",
+        9: "J",
+        10: "K",
       },
-      {
-        typeDesc: '多选',
-        type: 'multipleSelect',
-        statement: '多选',
-        markdownContent: '',
-        selectOptionList: ['选项1', '选项2'],
-        uploadConfig: [],
-        answer: [],
-        score: '',
-        icon: 'mdi-checkbox-marked'
+      constantCollection: {
+        // text - 题目 input - 填空
+        fillBlankType: {
+          text: '题目',
+          input: '填空'
+        }
       },
-      {
-        typeDesc: '填空题',
-        type: 'fillBlank',
-        statement: [
-          {id: 1, type: 'text', value: '文本'},
-          {id: 2, type: 'input', value: '填空', width: '100px'},
-          {id: 3, type: 'text', value: '文本'},
-        ],
-        markdownContent: '',
-        uploadConfig: [],
-        answer: {
-          2: '明月'
+      componentList: [
+        { typeDesc: '多行文本', type: 'textarea', statement: '多行文本', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea' },
+        { typeDesc: 'Markdown', type: 'markdown', statement: 'Markdown', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea' },
+        {
+          typeDesc: '单选',
+          type: 'singleSelect',
+          statement: '单选',
+          markdownContent: '',
+          selectOptionList: ['选项1', '选项2'],
+          uploadConfig: [],
+          answer: '',
+          score: '',
+          icon: 'mdi-checkbox-marked-circle'
         },
-        score: '',
-        icon: 'mdi-text-recognition'
+        {
+          typeDesc: '多选',
+          type: 'multipleSelect',
+          statement: '多选',
+          markdownContent: '',
+          selectOptionList: ['选项1', '选项2'],
+          uploadConfig: [],
+          answer: [],
+          score: '',
+          icon: 'mdi-checkbox-marked'
+        },
+        {
+          typeDesc: '填空题',
+          type: 'fillBlank',
+          statement: [
+            { id: 1, type: 'text', value: '文本' },
+            { id: 2, type: 'input', value: '填空', width: '100px' },
+            { id: 3, type: 'text', value: '文本' },
+          ],
+          markdownContent: '',
+          uploadConfig: [],
+          answer: {
+            2: '明月'
+          },
+          score: '',
+          icon: 'mdi-text-recognition'
+        },
+        { typeDesc: '纯标题文本', type: 'displayText', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea' },
+        { typeDesc: '组', type: 'questionGroup', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea' },
+      ],
+      tempComponent: null,
+
+
+      // 当 needle 是空字符串时，我们应当返回什么值呢？这是一个在面试中很好的问题。
+
+      // 对于本题而言，当 needle 是空字符串时我们应当返回 0 。这与 C 语言的 strstr() 以及 Java 的 indexOf() 定义相符。
+      // 著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。
+      // `,
+      //             property: {}, icon: 'mdi-checkbox-marked-circle'
+      //           },
+      //           formItemData: {}
+      //         }
+      //       ],
+      selectedFormItemId: null,
+      rightPanels: [0, 1, 2, 3, 4],
+    }),
+    computed: {
+      // selectCanvaId() {
+      //   const index = this.formItemList.findIndex(item => item.id === this.selectedFormItemId);
+      //   return index;
+      // },
+      isMobile() {
+        return window.innerWidth < 600;
       },
-      {typeDesc: '纯标题文本', type: 'displayText', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea'},
-      {typeDesc: '组', type: 'questionGroup', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea'},
-    ],
-    tempComponent: null,
-
-
-    // 当 needle 是空字符串时，我们应当返回什么值呢？这是一个在面试中很好的问题。
-
-    // 对于本题而言，当 needle 是空字符串时我们应当返回 0 。这与 C 语言的 strstr() 以及 Java 的 indexOf() 定义相符。
-    // 著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。
-    // `,
-    //             property: {}, icon: 'mdi-checkbox-marked-circle'
-    //           },
-    //           formItemData: {}
-    //         }
-    //       ],
-    selectedFormItemId: null,
-    rightPanels: [0, 1, 2, 3, 4],
-  }),
-  computed: {
-    // selectCanvaId() {
-    //   const index = this.formItemList.findIndex(item => item.id === this.selectedFormItemId);
-    //   return index;
-    // },
-    isMobile() {
-      return window.innerWidth < 600;
-    },
-    optionKey() {
-      return window.formItemListStore.optionKey
-    },
-    selectCanvaId() {
-      return window.formItemListStore.selectCanvaId
-    },
-    selectedFormItem() {
-      let filteredSelectedFormItem = null
-      try {
-        this.formItemList.forEach(item=> {
+      selectedFormItem() {
+        let filteredSelectedFormItem = null
+        try {
+          this.formItemList.forEach(item => {
             if (item.id === this.selectCanvaId) {
               filteredSelectedFormItem = item
               throw Error();
             }
             const itemList = item.component.itemList
             if (Array.isArray(itemList)) {
-              itemList.forEach(item2=> {
+              itemList.forEach(item2 => {
                 if (item2.id === this.selectCanvaId) {
                   filteredSelectedFormItem = item2
                   throw Error();
@@ -465,294 +355,303 @@ Vue.component("form-item-list-generator", {
 
 
 
-      console.log('filteredSelectedFormItem', filteredSelectedFormItem)
-      return filteredSelectedFormItem
-    }
-  },
-  mounted() {
-  },
-  destroyed() {
-  },
-
-  async created() {
-
-  },
-  methods: {
-    uuid() {
-      return window.formItemListFunc.uuid()
-    },
-    formItemSelect(index) {
-      return window.formItemListFunc.formItemSelect(index)
-    },
-
-    resetAnswer(index, type) {
-      // 由于组件ui 选中时改变题目bug，动态设置现有选中答案
-      // index: 这里并不是数字，而是ID
-      let itemIndex = index;
-      if(typeof index === 'string') {
-        itemIndex = this.formItemList.findIndex(item => item.id === index);
+        console.log('filteredSelectedFormItem', filteredSelectedFormItem)
+        return filteredSelectedFormItem
       }
-      if (type === 'singleSelect') {
-        if (!this.formItemList[itemIndex].component.selectOptionList.includes(this.formItemList[itemIndex].component.answer)) {
-          this.formItemList[itemIndex].component.answer = '';
+    },
+    mounted() {
+    },
+    destroyed() {
+    },
+
+    async created() {
+
+    },
+    methods: {
+      formItemSelect(index) {
+        this.$emit('update-select-canva-id', index)
+      },
+      resetAnswer(index, type) {
+        // 由于组件ui 选中时改变题目bug，动态设置现有选中答案
+        // index: 这里并不是数字，而是ID
+        let itemIndex = index;
+        if (typeof index === 'string') {
+          itemIndex = this.formItemList.findIndex(item => item.id === index);
         }
-      } else {
-        this.formItemList[itemIndex].component.answer = this.formItemList[itemIndex].component.answer ? this.formItemList[itemIndex].component.answer.filter(e => this.formItemList[itemIndex].component.selectOptionList.includes(e)) : [];
-      }
-    },
-    emptyCanva() {
-      this.formItemList = [];
-      this.$emit('change', []);
-    },
-    cloneComponent(component) {
-      this.tempComponent = component;
-    },
-    leftComponentDraggableOnEnd(event) {
-      console.log('leftComponentDraggableOnEnd event:', event)
-      if (event.from !== event.to) {
-        const newIndex = event.newIndex;
-        this.addFormItem(this.tempComponent, newIndex, event);
-      }
-      this.tempComponent = null;
-    },
-    addFormItem(_component, targetIndex, event) {
-      const component = {
-        ..._component,
-        answer: Array.isArray(_component.answer) ? [..._component.answer] : (typeof _component.answer === 'string') ? _component.answer : {..._component.answer},
-        uploadConfig: [..._component.uploadConfig],
-        itemList: []
-      };
-      if(_component.selectOptionList) {
-        component['selectOptionList'] = [..._component.selectOptionList];
-      }
-
-      const {type} = component;
-      const formItem = {
-        id: `${type}_${this.uuid(8)}`,
-        component
-      };
-
-      if (!this.formItemList) {
+        if (type === 'singleSelect') {
+          if (!this.formItemList[itemIndex].component.selectOptionList.includes(this.formItemList[itemIndex].component.answer)) {
+            this.formItemList[itemIndex].component.answer = '';
+          }
+        } else {
+          this.formItemList[itemIndex].component.answer = this.formItemList[itemIndex].component.answer ? this.formItemList[itemIndex].component.answer.filter(e => this.formItemList[itemIndex].component.selectOptionList.includes(e)) : [];
+        }
+      },
+      emptyCanva() {
         this.formItemList = [];
-      }
-
-
-      if (event) {
-        if (event.to.className.includes('questionGroup') && !formItem.id.includes('questionGroup')) {
-        // 添加到组件到分组
-          let newFormItemList = [...this.formItemList]
-          newFormItemList = newFormItemList.map(item=> {
-            if (event.to.className.includes(item.id)) {
-              item.component.itemList.push(formItem)
-            }
-            return item
-          })
-          this.formItemList = newFormItemList
-          return;
+        this.$emit('change', []);
+      },
+      cloneComponent(component) {
+        this.tempComponent = component;
+      },
+      leftComponentDraggableOnEnd(event) {
+        console.log('leftComponentDraggableOnEnd event:', event)
+        if (event.from !== event.to) {
+          const newIndex = event.newIndex;
+          this.addFormItem(this.tempComponent, newIndex, event);
         }
-      }
+        this.tempComponent = null;
+      },
+      addFormItem(_component, targetIndex, event) {
+        const component = {
+          ..._component,
+          answer: Array.isArray(_component.answer) ? [..._component.answer] : (typeof _component.answer === 'string') ? _component.answer : { ..._component.answer },
+          uploadConfig: [..._component.uploadConfig],
+          itemList: []
+        };
+        if (_component.selectOptionList) {
+          component['selectOptionList'] = [..._component.selectOptionList];
+        }
+
+        const { type } = component;
+        const formItem = {
+          id: `${type}_${this.uuid(8)}`,
+          component
+        };
+
+        if (!this.formItemList) {
+          this.formItemList = [];
+        }
 
 
-      if (targetIndex > -1) {
-        this.formItemList.splice(targetIndex, 0, formItem);
-      } else {
-        this.formItemList = [...this.formItemList, formItem];
-      }
-      this.$emit("change", this.formItemList);
-      setTimeout(() => {
-        this.formItemSelect(formItem.id);
-      }, 500);
-    },
-
-    propertyAddOption(index) {
-      this.selectedFormItem.component.selectOptionList.splice(index, 0, '选项' + (index + 1));
-    },
-    propertyDeleteOption(index) {
-      this.selectedFormItem.component.selectOptionList.splice(index, 1);
-    },
-
-    getFormItemList() {
-      return this.formItemList;
-    },
-
-    addFillBlankLine(formIndex, index, type) {
-      const id = Date.now();
-      this.selectedFormItem.component.statement.splice(index + 1, 0, {
-        id, type, value: ''
-      })
-      this.selectedFormItem.component.answer[id] = '';
-    },
-    async editFillBlankLine(formIndex, index, type) {
-      switch (type) {
-        case '剪切':
-        case '复制':
-          this.lineHandler = {
-            type: type === '剪切' ? 'cut' : 'copy',
-            line: this.selectedFormItem.component.statement[index]
+        if (event) {
+          if (event.to.className.includes('questionGroup') && !formItem.id.includes('questionGroup')) {
+            // 添加到组件到分组
+            let newFormItemList = [...this.formItemList]
+            newFormItemList = newFormItemList.map(item => {
+              if (event.to.className.includes(item.id)) {
+                item.component.itemList.push(formItem)
+              }
+              return item
+            })
+            this.formItemList = newFormItemList
+            return;
           }
-          break;
-        case '粘贴':
-          this.selectedFormItem.component.statement.splice(index + 1, 0, {
-            ...this.lineHandler.line, id: Date.now()
-          })
-          if (this.lineHandler.type === 'cut') {
-            const i = this.selectedFormItem.component.statement.findIndex(e => e.id === this.lineHandler.line.id);
-            this.selectedFormItem.component.statement.splice(i, 1);
+        }
+
+
+        if (targetIndex > -1) {
+          this.formItemList.splice(targetIndex, 0, formItem);
+        } else {
+          this.formItemList = [...this.formItemList, formItem];
+        }
+        this.$emit("change", this.formItemList);
+        setTimeout(() => {
+          this.formItemSelect(formItem.id);
+        }, 500);
+      },
+
+      propertyAddOption(index) {
+        this.selectedFormItem.component.selectOptionList.splice(index, 0, '选项' + (index + 1));
+      },
+      propertyDeleteOption(index) {
+        this.selectedFormItem.component.selectOptionList.splice(index, 1);
+      },
+
+      getFormItemList() {
+        return this.formItemList;
+      },
+
+      addFillBlankLine(formIndex, index, type) {
+        const id = Date.now();
+        this.selectedFormItem.component.statement.splice(index + 1, 0, {
+          id, type, value: ''
+        })
+        this.selectedFormItem.component.answer[id] = '';
+      },
+      async editFillBlankLine(formIndex, index, type) {
+        switch (type) {
+          case '剪切':
+          case '复制':
             this.lineHandler = {
-              type: '',
-              line: {}
+              type: type === '剪切' ? 'cut' : 'copy',
+              line: this.selectedFormItem.component.statement[index]
             }
-          }
-          break;
-        case '删除':
-          this.selectedFormItem.component.statement.splice(index, 1);
-          break;
-      }
-    },
-    datadragEndSub(index, event) {
-      console.log(index, event)
-    }
+            break;
+          case '粘贴':
+            this.selectedFormItem.component.statement.splice(index + 1, 0, {
+              ...this.lineHandler.line, id: Date.now()
+            })
+            if (this.lineHandler.type === 'cut') {
+              const i = this.selectedFormItem.component.statement.findIndex(e => e.id === this.lineHandler.line.id);
+              this.selectedFormItem.component.statement.splice(i, 1);
+              this.lineHandler = {
+                type: '',
+                line: {}
+              }
+            }
+            break;
+          case '删除':
+            this.selectedFormItem.component.statement.splice(index, 1);
+            break;
+        }
+      },
+      datadragEndSub(index, event) {
+        console.log(index, event)
+      },
+      uuid(t = 21) {
+        let e = "", r = crypto.getRandomValues(new Uint8Array(t));
+        for (; t--;) {
+          let n = 63 & r[t];
+          e += n < 36 ? n.toString(36) : n < 62 ? (n - 26).toString(36).toUpperCase() : n < 63 ? "_" : "-"
+        }
+        ;
+        return e
+      },
 
-  },
-})
+    },
+  })
 </script>
 
 <style scoped>
-.form-item-list-generator-content {
-  align-items: stretch;
-  height: 100%;
-}
+  .form-item-list-generator-content {
+    align-items: stretch;
+    height: 100%;
+  }
 
-.componentList {
-  padding: 8px;
-  box-sizing: border-box;
-  width: 256px;
-  overflow-y: auto;
-  height: 100%;
-  max-height: 100%;
-}
+  .componentList {
+    padding: 8px;
+    box-sizing: border-box;
+    width: 256px;
+    overflow-y: auto;
+    height: 100%;
+    max-height: 100%;
+  }
 
-.left-component-item {
-  width: 100%;
-  margin: 8px 0;
-  transition: transform 0ms !important;
-}
-
-.left-component-item-title {
-  font-size: 14px;
-  color: #222;
-  margin: 6px 2px;
-}
-
-.left-component-item-body {
-  padding: 8px 10px;
-  background: #f5f8fa;
-  font-size: 12px;
-  cursor: move;
-  border: 1px dashed #f5f8fa;
-  border-radius: 3px;
-}
-
-.left-component-item-body:hover {
-  border: 1px dashed #4caf50;
-  background: #f5f8fa;
-  color: #4caf50;
-}
-
-.left-component-item-body:hover .v-icon {
-  color: #4caf50;
-}
-
-.formItemList {
-  flex: 1;
-  overflow-y: auto;
-  height: 100%;
-  max-height: calc(100vh - 200px);
-}
-
-.formItemList .formItem-selected {
-  border: 1px dashed #4caf50 !important;
-  background: #e6fde3;
-}
-
-.formItem-title {
-  white-space: normal;
-}
-
-.property {
-  width: 360px;
-  overflow-y: auto;
-  max-height: calc(100vh - 105px);
-  padding: 10px;
-}
-
-.property .property-title {
-  margin-bottom: 10px;
-}
-
-.property .v-expansion-panel .v-expansion-panel-header {
-  min-height: auto;
-}
-
-.property .v-expansion-panel-content__wrap {
-  padding: 0px;
-}
-
-.property .v-expansion-panel .v-list-item__action, .v-list-item__avatar, .v-list-item__icon {
-  display: inline-block;
-  min-width: 24px;
-}
-
-.propertyList::-webkit-scrollbar {
-  width: 5px;
-  background: #f5f8fa;
-  border-radius: 5px;
-}
-
-.propertyList::-webkit-scrollbar-thumb {
-  width: 5px;
-  background: #606060;
-  border-radius: 5px;
-}
-
-body .theme--light.v-text-field--filled.cus-v-input.black > .v-input__control > .v-input__slot {
-  background: #e6ebee;
-}
-
-.draggable-placeholder {
-  position: absolute;
-  left: 0!important;
-  top: 50%!important;
-  transform: translateY(-50%)!important;
-  opacity: 0.3;
-}
-.fill-blank {
-  display: inline-block;
-
-}
-.fill-blank-input {
-  padding-left: 10px;
-  padding-right: 10px;
-  border-bottom: 2px solid gray;
-  margin-left: 5px;
-  margin-right: 5px;
-}
-
-@media (max-width: 500px) {
   .left-component-item {
-    width: auto;
-    display: inline-block;
-    margin: 8px 4px;
+    width: 100%;
+    margin: 8px 0;
     transition: transform 0ms !important;
   }
 
-  .formItemList {
-    border-top: 2px solid #cccccc !important;
-    border-bottom: 2px solid #cccccc !important;
-    border-radius: unset !important;
-    height: auto;
-    max-height: none;
-    overflow: hidden;
+  .left-component-item-title {
+    font-size: 14px;
+    color: #222;
+    margin: 6px 2px;
   }
-}
+
+  .left-component-item-body {
+    padding: 8px 10px;
+    background: #f5f8fa;
+    font-size: 12px;
+    cursor: move;
+    border: 1px dashed #f5f8fa;
+    border-radius: 3px;
+  }
+
+  .left-component-item-body:hover {
+    border: 1px dashed #4caf50;
+    background: #f5f8fa;
+    color: #4caf50;
+  }
+
+  .left-component-item-body:hover .v-icon {
+    color: #4caf50;
+  }
+
+  .formItemList {
+    flex: 1;
+    overflow-y: auto;
+    height: 100%;
+    max-height: calc(100vh - 200px);
+  }
+
+  .formItemList .formItem-selected {
+    border: 1px dashed #4caf50 !important;
+    background: #e6fde3;
+  }
+
+  .formItem-title {
+    white-space: normal;
+  }
+
+  .property {
+    width: 360px;
+    overflow-y: auto;
+    max-height: calc(100vh - 105px);
+    padding: 10px;
+  }
+
+  .property .property-title {
+    margin-bottom: 10px;
+  }
+
+  .property .v-expansion-panel .v-expansion-panel-header {
+    min-height: auto;
+  }
+
+  .property .v-expansion-panel-content__wrap {
+    padding: 0px;
+  }
+
+  .property .v-expansion-panel .v-list-item__action,
+  .v-list-item__avatar,
+  .v-list-item__icon {
+    display: inline-block;
+    min-width: 24px;
+  }
+
+  .propertyList::-webkit-scrollbar {
+    width: 5px;
+    background: #f5f8fa;
+    border-radius: 5px;
+  }
+
+  .propertyList::-webkit-scrollbar-thumb {
+    width: 5px;
+    background: #606060;
+    border-radius: 5px;
+  }
+
+  body .theme--light.v-text-field--filled.cus-v-input.black>.v-input__control>.v-input__slot {
+    background: #e6ebee;
+  }
+
+  .draggable-placeholder {
+    position: absolute;
+    left: 0 !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    opacity: 0.3;
+  }
+
+  .fill-blank {
+    display: inline-block;
+
+  }
+
+  .fill-blank-input {
+    padding-left: 10px;
+    padding-right: 10px;
+    border-bottom: 2px solid gray;
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+
+  @media (max-width: 500px) {
+    .left-component-item {
+      width: auto;
+      display: inline-block;
+      margin: 8px 4px;
+      transition: transform 0ms !important;
+    }
+
+    .formItemList {
+      border-top: 2px solid #cccccc !important;
+      border-bottom: 2px solid #cccccc !important;
+      border-radius: unset !important;
+      height: auto;
+      max-height: none;
+      overflow: hidden;
+    }
+  }
 </style>
