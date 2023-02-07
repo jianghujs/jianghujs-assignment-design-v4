@@ -395,12 +395,12 @@
           }
         }
 
-
         if (targetIndex > -1) {
           this.formItemList.splice(targetIndex, 0, formItem);
         } else {
           this.formItemList = [...this.formItemList, formItem];
         }
+        this.$emit('change', this.formItemList)
         setTimeout(() => {
           this.formItemSelect(formItem.id);
         }, 500);

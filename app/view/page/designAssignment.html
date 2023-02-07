@@ -30,6 +30,7 @@
         <form-item-list-generator
         :form-item-list="articleAssignmentWithAnswer"
         :selected-form-item-id="selectedFormItemId"
+        @change="saveData"
         ref="formItemListGenerator"/>
       </div>
     </v-container>
@@ -266,6 +267,10 @@
         }
         ;
         return e
+      },
+
+      saveData(val) {
+        this.articleAssignmentWithAnswer = val;
       },
     },
     // 使用provide将方法传递给下层所有组件
