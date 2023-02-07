@@ -1,0 +1,229 @@
+<!--xfComments.html start-->
+<template id="xf-note">
+  <div class="right-box" style="height: 100vh; display: flex; flex-direction: column; overflow-y: auto; padding: 10px">
+    <v-expansion-panels focusable multiple v-model="rightPanels">
+      <v-expansion-panel
+        v-for="(item,i) in articleAssignmentList"
+        :key="i"
+      >
+        <v-expansion-panel-header>
+          作业{{item.version}}
+          <v-spacer></v-spacer>
+          <v-btn elevation="0" v-if="rightPanels.includes(i)" small style="max-width: 60px" color="primary" dark @click.stop="submitArticleAssignment(i)" >
+            保存
+          </v-btn>
+        </v-expansion-panel-header>
+        <v-expansion-panel-content>
+          <div style="flex: 1;" class="noteTextareaBox">
+            <form-item-list-render :form-item-list="item.formItemList"></form-item-list-render>
+            <!-- <textarea id="noteTextarea" placeholder="随时记录您的阅读笔记......" hide-details outlined name="input-7-4"
+                @blur="submitNode" label="评论" v-model="articleNote.noteContent">
+            </textarea> -->
+          </div>
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+      <v-expansion-panel v-if="articleNote">
+        <v-expansion-panel-header>
+          笔记
+          <v-spacer></v-spacer>
+          <v-btn elevation="0" v-if="rightPanels.includes(articleAssignmentList.length)" small style="max-width: 60px" color="primary" dark @click.stop="submitNode">
+            保存
+          </v-btn>
+        </v-expansion-panel-header>
+        <v-expansion-panel-content>
+
+          <div style="flex: 1;" class="noteTextareaBox">
+            <textarea id="noteTextarea" placeholder="随时记录您的阅读笔记......" hide-details outlined name="input-7-4"
+                      @blur="submitNode" label="评论" v-model="articleNote.noteContent">
+            </textarea>
+          </div>
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+    </v-expansion-panels>
+  </div>
+</template>
+<script>
+  Vue.component("homework", {
+    vuetify: new Vuetify(),
+    name: 'homework',
+    template: "#xf-note",
+    props: {
+      mobileWebHasPlayer: {
+        type: Boolean,
+        default: false
+      },
+      article: {
+        type: Object,
+        dafault: () => { }
+      },
+      userInfo: {
+        type: Object,
+        dafault: () => { }
+      }
+    },
+    data: () => ({
+      rightPanels: [0],
+      articleNote: null,
+      saveing: null,
+      upload: window.appInfo.upload,
+      articleAssignmentList: [],
+    }),
+    computed: {
+      articleId() {
+        if (this.article && this.article.article) {
+          return this.article.article.articleId
+        }
+        return null;
+      },
+      isApp() {
+        try {
+          return !!xuanfengApp;
+        } catch (err) {
+          return false;
+        }
+      },
+      isMobile() {
+        return window.innerWidth < 600;
+      }
+    },
+    created() {
+    },
+    watch: {
+      article: {
+        deep: true,
+        handler(value) {
+          if(value && value.article) {
+            this.getArticleAssignmentList(value.article.articleId);
+          }
+        }
+      },
+      articleNote: {
+        deep: true,
+        handler(value) { }
+      }
+    },
+    mounted() {
+    },
+    methods: {
+      async submitArticleAssignment (index) {
+        const articleAssignment = this.articleAssignmentList[index];
+        const { id, version, formItemList } = articleAssignment;
+        if (!this.articleId || !this.userInfo.userId) {
+          window.vtoast.fail("数据异常");
+        }
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: "assignment",
+              actionId: id ? "updateItem" : "insertItem",
+              where: id ? { id } : {},
+              actionData: {
+                articleId: this.articleId,
+                userId: this.userInfo.userId,
+                assignmentVersion: version,
+                assignmentFormItemList: JSON.stringify(formItemList),
+              }
+            }
+          }
+        })
+        window.vtoast.success("保存成功");
+      },
+      async submitNode() {
+        this.saveing = true;
+        delete this.articleNote.id;
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: "note",
+              actionId: this.articleNote.noteId ? "updateItem" : "insertItem",
+              where: this.articleNote.noteId ? { noteId: this.articleNote.noteId } : {},
+              actionData: this.articleNote
+            }
+          }
+        })
+        window.vtoast.success("保存成功");
+      },
+      async getArticleNote(articleId) {
+        const rows = (await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'note',
+              actionId: 'selectItemList',
+              where: {
+                articleId, userId: this.userInfo.userId
+              }
+            }
+          }
+        })).data.appData.resultData.rows;
+        if (rows && rows.length) {
+          this.articleNote = rows[0];
+        } else {
+          this.articleNote = {
+            userId: this.userInfo.userId,
+            articleId
+          }
+        }
+
+      },
+      async getArticleAssignmentList(articleId) {
+        const rows = (await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'assignment',
+              actionId: 'selectArticleAssignmentList',
+              actionData: { articleId }
+            }
+          }
+        })).data.appData.resultData.rows;
+        this.articleAssignmentList = rows;
+        await this.getArticleNote(articleId);
+        this.rightPanels = [0, this.articleAssignmentList.length];
+      },
+      dayjs: dayjs
+    }
+  })
+</script>
+<style>
+    .leftListBody {
+        height: calc(100vh - 65px);
+        overflow-y: scroll;
+        overflow-x: hidden;
+    }
+
+    .noteTextareaBox {
+        padding: 10px;
+    }
+
+    .noteTextareaBox textarea {
+        width: 100%;
+        height: 100%;
+        border: 1px solid #cccccc;
+        border-radius: 4px;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+
+    .noteTextareaBox textarea:focus-visible {
+        outline: <$ ctx.app.config.primaryColor $> auto 1px;
+    }
+
+    @media screen and (max-width: 600px) {
+        .right-box {
+            padding-bottom: 130px !important;
+        }
+    }
+
+    .right-box .v-expansion-panel .v-expansion-panel-header {
+        min-height: auto;
+    }
+    .right-box .v-expansion-panel-content__wrap {
+        padding: 0px;
+    }
+
+    .right-box .v-expansion-panel .v-list-item__action, .v-list-item__avatar, .v-list-item__icon {
+        display: inline-block;
+        min-width: 24px;
+    }
+</style>
+<!--xfComments.html end-->

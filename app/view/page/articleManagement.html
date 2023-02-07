@@ -8,15 +8,10 @@
       <jh-menu />
       <v-main class="mt-15">
         <!-- 头部内容 >>>>>>>>>>>>> -->
-        <div class="jh-page-second-bar px-8">
-          <div class="pt-3 text-h7 font-weight-bold">doUiAction
-            <!-- 帮助页按钮 -->
-            <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
-          </div>
+        <div class="jh-page-second-bar px-8 pt-8">
           <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
         </div>
         <!-- <<<<<<<<<<<<< 头部内容 -->
-
         <div class="jh-page-body-container px-8">
           <!-- 页面内容 >>>>>>>>>>>>> -->
           <v-card class="rounded-lg">
@@ -51,6 +46,10 @@
                 <span role="button" class="success--text jh-font-size-3 pr-2"
                   @click="doUiAction('startUpdateItem', item)">
                   <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
+                </span>
+                <span role="button" class="success--text jh-font-size-3 pr-2"
+                @click="doUiAction('assignmentDesignPage', {item})">
+                  <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>出题
                 </span>
                 <span role="button" class="success--text jh-font-size-3"
                   @click="doUiAction('deleteItem', item)">
@@ -219,10 +218,9 @@
       isTableLoading: true,
       tableData: [],
       headers: [
-        { text: '操作', value: 'action', align: 'center', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed' },
-        { text: "ID", value: "articleId", width: 100, class: 'fixed', cellClass: 'fixed' },
+        { text: '操作', value: 'action', align: 'center', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed' },
+        { text: "ID", value: "articleId", width: 80, class: 'fixed', cellClass: 'fixed' },
         { text: "作业标题", value: "articleTitle", width: 300 },
-        { text: "创建时间", value: "articleCreateTime", width: 220, edit: false },
       ],
 
       isCreateDrawerShown: false,
@@ -285,6 +283,8 @@
             await this.clearDeleteItem();
             await this.getTableData();
             break;
+          case 'assignmentDesignPage':
+            await this.goToAssignmentDesignPage(uiActionData);
           default:
             console.error("[doUiAction] uiActionId not find", { uiActionId });
             break;
@@ -463,8 +463,14 @@
       async clearDeleteItem() {
         this.deleteItem = {};
         this.deleteItemId = null;
-      }
+      },
       // ---------- <<<<<<<<<<< 删除数据 uiAction  --------
+
+      // 跳转作业详情
+      async goToAssignmentDesignPage({item}) {
+        const { articleId, articleTitle } = item;
+        window.open(`/${window.appInfo.appId}/page/designAssignment?articleId=${articleId}&title=${articleTitle}`);
+      },
     }
   })
 </script>

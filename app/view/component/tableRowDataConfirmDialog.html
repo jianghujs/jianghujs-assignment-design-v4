@@ -1,0 +1,84 @@
+<!--jhConfirmDialog.html start-->
+<template id="table-row-data-confirm-dialog">
+  <v-dialog v-model="dialog" max-width="890" @click:outside="dialogDone = false; dialog = false">
+    <v-card>
+      <v-card-title v-if="editToast.title" :class="titleClass">
+        {{ editToast.title }}
+      </v-card-title>
+      <v-card-text v-if="editToast.content" style="white-space: pre-line;" class="pa-5">
+        <v-list>
+          <v-list-item dense v-for="(item, key) in editToast.content" :key="key">
+            <v-list-item-content dense>
+              <v-list-item-title>{{key}}</v-list-item-title>
+              <v-list-item-subtitle style="text-overflow: unset; white-space: normal;">{{item}}</v-list-item-subtitle>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn v-if="cancelBtn" text @click="dialogDone = false; dialog = false">
+          取消
+        </v-btn>
+        <v-btn :color="confirmColor" text @click="dialogDone = true; dialog = false">
+          确定
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+</template>
+<script>
+  Vue.component("table-row-data-confirm-dialog", {
+    vuetify: new Vuetify(),
+    name: 'table-row-data-confirm-dialog',
+    data: () => ({
+      dialog: false,
+      editToast: { title: '', action: null },
+      dialogDone: null,
+      cancelBtn: true,
+      titleClass: 'text-h5',
+      confirmColor: 'green darken-1'
+    }),
+    computed: {
+      isMobile() {
+        return window.innerWidth < 600;
+      },
+    },
+    destroyed() {
+      if (this.interval) {
+        clearInterval(this.interval)
+      }
+    },
+    watch: {
+      dialog(v) {
+        window.dialogIsOpen = v;
+      }
+    },
+    async created() {
+      window.shownRowData = this.shownRowData;
+    },
+    methods: {
+      async shownRowData({ title, content, cancelBtn = true, confirmColor = 'green darken-1' }) {
+        this.editToast.title = title;
+        this.editToast.content = content;
+        this.dialog = true;
+        this.cancelBtn = cancelBtn;
+        this.dialogDone = null;
+        this.confirmColor = confirmColor;
+        return new Promise((resolve) => {
+          this.interval = setInterval(() => {
+            if (this.dialogDone != null) {
+              clearInterval(this.interval);
+              resolve(this.dialogDone)
+              this.dialog = false;
+              this.dialogDone = null;
+            }
+          }, 60)
+        })
+      },
+    },
+    template: '#table-row-data-confirm-dialog'
+  })
+</script>
+<!--jhConfirmDialog.html end-->

@@ -48,20 +48,7 @@ module.exports = appInfo => {
       ].join(','),
     },
     middleware,
-    ...middlewareMatch,
-    pageDocPackage: {
-      match(ctx) { return false; },
-    },
-    pageDocUserInfo: {
-      match(ctx) {
-        // url 格式符合 /appId/page/pageId 或 /appId/pageDoc/pageId.md
-        return (ctx.request.method === 'GET' || ctx.request.method === 'HEAD')
-          && ctx.request.path.startsWith(`/${ctx.app.config.appId}/pageDoc`);
-      },
-    },
-    pageDocAuthorization: {
-      match(ctx) { return false; },
-    },
+    ...middlewareMatch
   };
 
 };

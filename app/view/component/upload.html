@@ -1,0 +1,145 @@
+<template id="upload">
+  <div class="upload-container">
+    <form method="post">
+      <div class="from-group-lg">
+        <div class="border text-center p-5 upload">
+          <div class="upload-preview"></div>
+          <input type="file" name="upload" :accept="accept" :id="'inputFile' + index + fileType" :class="'d-none upload-file'+index+fileType" @change="onFileChange">
+          <input type="hidden" name="cover">
+          <label :for="'inputFile' + index + fileType" class="upload-trigger text-decoration-none upload-btn" v-if="value === ''">
+            <i class="bi bi-cloud"></i>
+            <span>上传{{ getFileType() }}</span>
+          </label>
+          <div v-else class="preview-box">
+            <label class="file-item">
+              <label :for="'inputFile' + index + fileType" class="file-name upload-btn">{{ getFileType() }}<v-icon small color="green" aria-hidden="false">mdi-check-circle</v-icon></label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</template>
+
+<script>
+  Vue.component("upload", {
+    vuetify: new Vuetify(),
+    name: 'upload',
+    template: '#upload',
+    props: {
+      value: String | Boolean,
+      path: String,
+      storage: String,
+      fileType: String,
+      file: Object,
+      index: Number,
+      i: Number,
+      endpoint: Object,
+      icons: Object,
+      axios: Function,
+      maxUploadFilesCount: {type: Number, default: 0},
+      maxUploadFileSize: {type: Number, default: 0}
+    },
+    data() {
+      return {
+        loading: false,
+        uploading: false,
+        files: [],
+        progress: 0,
+        listItems: [],
+        accept: '*',
+      };
+    },
+    created() {
+    },
+    methods: {
+      async onFileChange(e) {
+        const uploadFile = document.querySelector(`.upload-file${this.index}${this.fileType}`);
+        this.files = uploadFile.files;
+        this.loading = true;
+        this.listItems = await this.filesMap(this.files);
+        this.$emit('change', this.index, this.fileType, uploadFile.files[0]);
+        this.loading = false;
+      },
+      async filesMap(files) {
+        let promises = Array.from(files).map(file => {
+          let result = {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            extension: file.name.split(".").pop()
+          };
+          return new Promise(resolve => {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+              result.preview = e.target.result;
+              resolve(result);
+            };
+            reader.readAsDataURL(file);
+          });
+        });
+
+        return await Promise.all(promises);
+      },
+      formatBytes(bytes, decimals = 2) {
+        if (bytes === 0) return '0 bytes';
+
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+      },
+      getFileType() {
+        switch (this.fileType) {
+          case 'img':
+            this.accept = 'image/*'
+            return '图片'
+          case 'audio':
+            this.accept = '.mp3'
+            return '音频'
+          case 'video':
+            this.accept = 'video/*'
+            return '视频'
+          default :
+            return '附件'
+        }
+      }
+    },
+    watch: {
+    }
+  });
+</script>
+
+<style scoped>
+    ::v-deep .v-overlay__content {
+        width: 90%;
+        max-width: 500px;
+    }
+
+    ::v-deep .v-overlay__content .files-list-wrapper {
+        max-height: 250px;
+        overflow-y: auto;
+    }
+    .upload-container .upload-trigger {
+        cursor: pointer;
+    }
+    .upload-container .from-group-lg {
+        background-color: #f6f6f6;
+        border: 1px solid #eeeeee;
+        border-radius: 10px;
+        padding: 0;
+    }
+    .upload-container .file-item {
+    }
+    .upload-container .upload-btn {
+        display: block;
+        width: 100%;
+        padding: 5px
+    }
+    .upload-container .from-group-lg:hover {
+        background-color: #c7c7c7;
+    }
+</style>
