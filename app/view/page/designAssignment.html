@@ -34,8 +34,10 @@
         </v-row>
       </div>
       <div style="height: calc(100vh - 300px)">
-        <tpl-form-design :form="articleAssignmentWithAnswer">
-        </tpl-form-design>
+        <form-item-list-generator
+        :form-item-list="articleAssignmentWithAnswer"
+        @change="saveData"
+        ref="formItemListGenerator"/>
       </div>
     </v-container>
   </v-app>
@@ -53,11 +55,46 @@
 {% block vueScript %}
 
 
+{% include 'component/tpl/formItemMarkdown.html' %}
+{% include 'component/tpl/formItemListContent.html' %}
 {% include 'component/tpl/formItemListGenerator.html' %}
-{% include 'component/tpl/tplFormDesign.html' %}
 {% include 'component/vueJsonEditor.html' %}
 
 <script type="module">
+
+window.formItemListStore = Vue.observable({
+  selectCanvaId: '',
+  optionKey: {
+      0: "A",
+      1: "B",
+      2: "C",
+      3: "D",
+      4: "E",
+      5: "F",
+      6: "G",
+      7: "H",
+      8: "I",
+      9: "J",
+      10: "K",
+    },
+
+});
+
+window.formItemListFunc = {
+  uuid(t = 21) {
+    let e = "", r = crypto.getRandomValues(new Uint8Array(t));
+    for (; t--;) {
+      let n = 63 & r[t];
+      e += n < 36 ? n.toString(36) : n < 62 ? (n - 26).toString(36).toUpperCase() : n < 63 ? "_" : "-"
+    }
+    ;
+    return e
+  },
+  formItemSelect(id) {
+    window.formItemListStore.selectCanvaId = id;
+  },
+}
+
   new Vue({
     el: '#app',
     template: '#app-template',
@@ -89,7 +126,8 @@
         tabSize: 4,
         indentWithTabs: true,
       },
-      formItemList: []
+      formItemList: [],
+      selectCanvaId: ''
     }),
     watch: {
       articleAssignmentWithAnswer: {
@@ -130,6 +168,10 @@
             console.error("[doUiAction] uiActionId not find", { uiActionId });
             break;
         }
+      },
+      saveData(val) {
+        this.articleAssignmentWithAnswer = val;
+        console.log('articleAssignmentWithAnswer.formItemList', val);
       },
       buildFormItemList() {
         let list = []

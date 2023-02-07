@@ -1,6 +1,6 @@
 <template id="form-item-list-generator">
-  <v-card color="#f5f8fa" :class="{'d-flex': !isMobile, 'form-item-list-generator-content': !isMobile}">
-    <v-card :style="{'width': isMobile ? '100%' : '300px'}"
+  <v-card color="#f5f8fa" style="max-height: 100%" :class="{'d-flex': !isMobile, 'form-item-list-generator-content': !isMobile}">
+    <v-card style="max-height: 100%; overflow-y: auto;" :style="{'width': isMobile ? '100%' : '300px'}"
             :class="{'pa-4': !isMobile, 'pa-2': isMobile, 'mr-6': !isMobile}">
       <div class="left-component-item-title" :style="{'white-space': 'nowrap'}">
         <v-icon>mdi-puzzle-outline</v-icon>
@@ -17,89 +17,32 @@
              @click="addFormItem(component)">
           <div class="left-component-item-body">
             <v-icon small class="mr-1">{{ component.icon }}</v-icon>
-            {{ component.title }}
+            {{ component.typeDesc }}
           </div>
         </div>
       </draggable>
     </v-card>
 
-    <v-card class="formItemList py-10 pl-4 pr-4" style="position: relative;">
-      <v-btn small color="error" @click.stop="emptyCanva" class="mr-2 mt-2"
-             style="position: absolute; right: 8px; top: 0;">
-        <span>重置</span>
+    <v-card class="formItemList pt-5 px-4" style="position: relative;max-height: 100%; overflow-y: auto;">
+      <div class="d-flex justify-end">
+
+        <v-btn small color="error" @click.stop="emptyCanva" class="mr-2">
+          <span>重置</span>
+        </v-btn>
       </v-btn>
-      <draggable
-          v-if="formItemList.length > 0"
-          :list="formItemList"
-          :animation="300"
-          group="componentGroup">
-        <v-hover v-for="(formItem, index) in formItemList" :key="index" v-slot:default="{ hover }">
-          <v-card
-              @click.native="formItemSelect(formItem.id)"
-              :elevation="hover ? 12 : 2"
-              :class="['my-2', selectedFormItemId === formItem.id && !hover ? 'formItem-selected' : 'formItem-body']"
-              style="cursor: move"
-              dense>
-            <v-list-item>
 
-              <v-list-item-content v-if="formItem.component.type === 'singleSelect'">
-                <v-radio-group :label="(index+1) + formItem.component.outline" v-model="formItem.answerData.selected">
-                  <v-radio hide-details v-for="(option, optionIndex) in formItem.component.property.selectOptionList"
-                           :key="optionIndex" :label="option.value" :value="option.value"></v-radio>
-                </v-radio-group>
-              </v-list-item-content>
+      </div>
+      <form-item-list-content :selected-form-item="selectedFormItem" :form-item-list="formItemList" />
 
-              <v-list-item-content v-if="formItem.component.type === 'multipleSelect'">
-                <v-list-item-title class="formItem-title">{{ index + 1 }}. {{
-                    formItem.component.outline
-                  }}
-                </v-list-item-title>
-                <div v-for="(option, optionIndex) in formItem.component.property.selectOptionList" :key="optionIndex">
-                  <v-checkbox hide-details style="margin-top: 0px;" :label="option.value" hide-details v-model="formItem.answerData[option.value]"
-                              color="red"></v-checkbox>
-                </div>
-              </v-list-item-content>
-
-              <v-list-item-content v-if="formItem.component.type === 'textarea'">
-                <v-textarea dense outlined placeholder="请输入答案" hide-details :rows="4" v-model="formItem.answerData.answer"
-                            :label="(index+1) + '. ' + formItem.component.outline"/>
-              </v-list-item-content>
-<!-- 
-              <v-list-item-content v-if="formItem.component.type === 'input'">
-                <v-text-field class="cus-v-input" dense outlined :label="(index+1) + '. ' + formItem.component.outline" v-model="formItem.answerData.answer"></v-text-field>
-              </v-list-item-content> -->
-
-              <v-list-item-action v-if="selectedFormItemId === formItem.id" class="justify-start">
-                <v-btn x-small icon @click.stop="formItemCopy(index, formItem)">
-                  <v-icon color="primary">mdi-content-duplicate</v-icon>
-                </v-btn>
-                <v-btn x-small icon @click.stop="formItemDelete(formItem.id)">
-                  <v-icon color="error">mdi-close-box</v-icon>
-                </v-btn>
-              </v-list-item-action>
-            </v-list-item>
-          </v-card>
-        </v-hover>
-      </draggable>
-      <v-row v-else align="center" justify="center" class="ma-0 pa-0" style="width: 100%;">
-        <v-card height="100" class="ma-12" width="100%" color="#f5f8fa" style="border: 1px dashed #333333">
-          <draggable :list="[]" :animation="300" group="componentGroup" style="position: relative; height: 100%;">
-            <v-card-text class="text-center title draggable-placeholder">
-              从左侧拖入或点选组件进行表单设计
-            </v-card-text>
-          </draggable>
-        </v-card>
-      </v-row>
     </v-card>
 
-    <v-card :style="{'width': isMobile ? 'auto' : '300px'}" class="pa-4" :class="{'ml-6': !isMobile}">
+    <v-card style="max-height: 100%; overflow-y: auto;" :style="{'width': isMobile ? 'auto' : '300px'}" class="pa-4" :class="{'ml-6': !isMobile}">
       <div class="property-title">
         <v-icon>mdi-application-edit-outline</v-icon>
         <span style="transform: translateY(2px); display: inline-block;">组件属性</span>
       </div>
-      <div v-if="selectCanvaIndex >= 0 && formItemList[selectCanvaIndex]">
-        <v-card class="mt-5" flat
-                v-if="formItemList[selectCanvaIndex].component.type === 'singleSelect' || formItemList[selectCanvaIndex].component.type === 'multipleSelect'">
+      <div v-if="selectCanvaId && selectedFormItem">
+        <v-card class="mt-5" flat v-if="['singleSelect', 'multipleSelect'].includes(selectedFormItem.component.type)">
           <v-row no-gutters>
             <v-col cols="12">
               <v-row no-gutters>
@@ -107,7 +50,7 @@
                 <v-col cols="12">
                   <v-checkbox
                     class="mt-0"
-                    v-model="formItemList[selectCanvaIndex].upload"
+                    v-model="selectedFormItem.component.uploadConfig"
                     label="图片"
                     value="img"
                     hide-details
@@ -115,7 +58,7 @@
                   ></v-checkbox>
                   <v-checkbox
                     class="mt-0"
-                    v-model="formItemList[selectCanvaIndex].upload"
+                    v-model="selectedFormItem.component.uploadConfig"
                     label="音频"
                     value="audio"
                     hide-details
@@ -123,7 +66,7 @@
                   ></v-checkbox>
                   <v-checkbox
                     class="mt-0"
-                    v-model="formItemList[selectCanvaIndex].upload"
+                    v-model="selectedFormItem.component.uploadConfig"
                     label="视频"
                     value="video"
                     hide-details
@@ -133,49 +76,71 @@
               </v-row>
             </v-col>
             <v-col cols="12">
+              <span class="inputLabel">参考分数</span>
+              <v-textarea class="cus-v-input"
+                dense
+                filled
+                single-line
+                color="success"
+                v-model="selectedFormItem.component.score"
+                auto-grow :rows="1"
+                >
+              </v-textarea>
               <span class="inputLabel">题目</span>
-              <v-text-field class="cus-v-input" dense filled single-line prefix="标题: " color="success"
-                            v-model="formItemList[selectCanvaIndex].component.outline"></v-text-field>
+              <v-textarea class="cus-v-input"
+                dense
+                filled
+                single-line
+                color="success"
+                v-model="selectedFormItem.component.statement"
+                auto-grow :rows="1"
+                >
+              </v-textarea>
               <div style="display: flex; flex-direction: row;justify-content: space-between; align-items: center;">
                 <v-subheader class="pa-0">选项列表</v-subheader>
                 <v-btn icon
-                       @click.stop="propertyAddOption(formItemList[selectCanvaIndex].component.property.selectOptionList.length)">
+                       @click.stop="propertyAddOption(selectedFormItem.component.selectOptionList.length)">
                   <v-icon dark color="grey lighten-1">mdi-plus-box</v-icon>
                 </v-btn>
               </div>
               <v-list class="propertyList" dense style="max-height: 300px; overflow-y: auto;">
-                <v-list-item
-                    class="pa-0"
-                    v-for="(option, index) in formItemList[selectCanvaIndex].component.property.selectOptionList"
-                    :key="index">
-                  <v-list-item-content>
-                    <v-text-field
-                        v-model="option.value"
-                        prefix="选项:"
-                        color="success"
-                        filled single-line
-                        dense
-                        hide-details
-                        clearable
-                        placeholder="请输入选项"/>
-                  </v-list-item-content>
-                  <v-list-item-action class="ml-2">
-                    <v-btn icon @click.stop="propertyDeleteOption(index)">
-                      <v-icon color="grey lighten-1" dark>mdi-delete</v-icon>
-                    </v-btn>
-                  </v-list-item-action>
-                </v-list-item>
+                <template v-for="(optionText, i) in selectedFormItem.component.selectOptionList">
+                  <v-list-item
+                      class="pa-0"
+                      :data-index="selectCanvaId"
+                      :key="selectCanvaId + '-' + i">
+                    <v-list-item-content>
+                      <v-textarea class="cus-v-input"
+                                  dense
+                                  :key="selectCanvaId + '-' + i"
+                                  filled
+                                  :prefix="optionKey[i]+': '"
+                                  single-line
+                                  color="success"
+                                  v-model="selectedFormItem.component.selectOptionList[i]"
+                                  auto-grow :rows="1"
+                                  @input="resetAnswer(selectCanvaId, selectedFormItem.component.type)"
+                      >
+                      </v-textarea>
+                    </v-list-item-content>
+                    <v-list-item-action class="ml-2">
+                      <v-btn icon @click.stop="propertyDeleteOption(i)">
+                        <v-icon color="grey lighten-1" dark>mdi-delete</v-icon>
+                      </v-btn>
+                    </v-list-item-action>
+                  </v-list-item>
+                </template>
               </v-list>
             </v-col>
           </v-row>
         </v-card>
-        <v-card class="mt-5" flat v-if="formItemList[selectCanvaIndex].component.type === 'textarea'">
+        <v-card class="mt-5" flat v-if="['textarea', 'markdown'].includes(selectedFormItem.component.type)">
           <v-row no-gutters>
             <span class="inputLabel">附件上传配置</span>
             <v-col cols="12">
               <v-checkbox
                 class="mt-0"
-                v-model="formItemList[selectCanvaIndex].upload"
+                v-model="selectedFormItem.component.uploadConfig"
                 label="图片"
                 value="img"
                 hide-details
@@ -183,7 +148,7 @@
               ></v-checkbox>
               <v-checkbox
                 class="mt-0"
-                v-model="formItemList[selectCanvaIndex].upload"
+                v-model="selectedFormItem.component.uploadConfig"
                 label="音频"
                 value="audio"
                 hide-details
@@ -191,7 +156,7 @@
               ></v-checkbox>
               <v-checkbox
                 class="mt-0"
-                v-model="formItemList[selectCanvaIndex].upload"
+                v-model="selectedFormItem.component.uploadConfig"
                 label="视频"
                 value="video"
                 hide-details
@@ -199,20 +164,191 @@
               ></v-checkbox>
             </v-col>
           </v-row>
+          <span class="inputLabel">参考分数</span>
+          <v-textarea class="cus-v-input"
+            dense
+            filled
+            single-line
+            color="success"
+            v-model="selectedFormItem.component.score"
+            auto-grow :rows="1"
+            >
+          </v-textarea>
           <span class="inputLabel">题目</span>
-          <v-text-field class="cus-v-input" dense filled single-line label="多行文本"
-                        v-model="formItemList[selectCanvaIndex].component.outline"></v-text-field>
+          <v-textarea class="cus-v-input" dense filled single-line label="多行文本" auto-grow :rows="1"
+                        v-model="selectedFormItem.component.statement"></v-textarea>
+
+
         </v-card>
-        <v-card class="mt-5" flat v-if="formItemList[selectCanvaIndex].component.type === 'input'">
-          <v-text-field class="cus-v-input" dense filled single-line label="单行文本"
-                        v-model="formItemList[selectCanvaIndex].component.outline"></v-text-field>
+        <v-card class="mt-5" flat v-if="selectedFormItem.component.type === 'fillBlank'">
+          <v-row no-gutters>
+            <span class="inputLabel">附件上传配置</span>
+            <v-col cols="12">
+              <v-checkbox
+                class="mt-0"
+                v-model="selectedFormItem.component.uploadConfig"
+                label="图片"
+                value="img"
+                hide-details
+                style="display: inline-block; margin: 0 20px"
+              ></v-checkbox>
+              <v-checkbox
+                class="mt-0"
+                v-model="selectedFormItem.component.uploadConfig"
+                label="音频"
+                value="audio"
+                hide-details
+                style="display: inline-block; margin-right: 20px"
+              ></v-checkbox>
+              <v-checkbox
+                class="mt-0"
+                v-model="selectedFormItem.component.uploadConfig"
+                label="视频"
+                value="video"
+                hide-details
+                style="display: inline-block;"
+              ></v-checkbox>
+            </v-col>
+          </v-row>
+          <span class="inputLabel">参考分数</span>
+          <v-textarea class="cus-v-input"
+            dense
+            filled
+            single-line
+            color="success"
+            v-model="selectedFormItem.component.score"
+            auto-grow :rows="1"
+            >
+          </v-textarea>
+          <span class="inputLabel">题目</span>
+                        <template v-for="(item, index) in selectedFormItem.component.statement">
+                          <v-textarea
+                            v-model="item.value"
+                            hide-details
+                            class="cus-v-input mb-1"
+                            dense
+                            filled
+                            single-line
+                            color="success"
+                            auto-grow :rows="3"
+                            @input="nodeLoadingStatus = 'input'"
+                            :placeholder="item.type === 'text' ? '题目' : '填空'"
+                          >
+                              <template v-slot:append-outer>
+                                <div class="d-flex flex-column">
+                                  <v-menu
+                                    style="top: -12px"
+                                    offset-y
+                                  >
+                                    <template v-slot:activator="{ on, attrs }">
+                                    <v-chip
+                                      class="px-1"
+                                      small v-bind="attrs" v-on="on" :color="item.type === 'text' ? 'secondary' : 'success'"
+                                    >
+                                      {{ item.type === 'text' ? '题目' : '填空' }}
+                                    </v-chip>
+                                    </template>
+                                    <v-card>
+                                      <v-card-text class="pa-0">
+                                      <v-btn
+                                        v-for="(ty, key, i) in constantCollection.fillBlankType"
+                                        :key="i"
+                                        @click="selectedFormItem.component.statement[index].type = key"
+                                        text
+                                        color="primary"
+                                      >
+                                          {{ty}}
+                                        </v-btn>
+                                      </v-card-text>
+                                    </v-card>
+                                  </v-menu>
+                                  <v-menu
+                                  style="top: -12px"
+                                  offset-y
+                                >
+                                  <template v-slot:activator="{ on, attrs }">
+                                  <v-btn small v-bind="attrs" v-on="on" icon color="black" dark>
+                                    <v-icon >mdi-plus</v-icon>
+                                  </v-btn>
+                                  </template>
+                                  <v-card>
+                                    <v-card-text class="pa-0">
+                                    <v-btn
+                                      v-for="(type, key, i) in constantCollection.fillBlankType"
+                                      :key="i"
+                                      @click="addFillBlankLine(i, index, key)"
+                                      text
+                                      color="primary"
+                                    >
+                                        {{type}}
+                                      </v-btn>
+                                    </v-card-text>
+                                  </v-card>
+                                </v-menu>
+                                <v-menu
+                                  style="top: -12px"
+                                  offset-y
+                                >
+                                  <template v-slot:activator="{ on, attrs }">
+                                    <v-btn
+                                      small
+                                      v-bind="attrs"
+                                      v-on="on"
+                                      icon
+                                      color="black"
+                                      dark
+                                    >
+                                      <v-icon >mdi-dots-vertical</v-icon>
+                                    </v-btn>
+                                  </template>
+
+                                  <v-card>
+                                    <v-card-text class="pa-0">
+                                    <v-btn
+                                      v-for="(type, i) in ['删除']"
+                                      :key="i"
+                                      @click="editFillBlankLine(selectCanvaId, index, type)"
+                                      text
+                                      color="primary"
+                                      :disabled="type === '粘贴'"
+                                    >
+                                        {{type}}
+                                      </v-btn>
+                                    </v-card-text>
+                                  </v-card>
+                                </v-menu>
+                                </div>
+
+                              </template>
+                            </v-textarea>
+                          </template>
+
+        </v-card>
+        <v-card class="mt-5" flat v-if="selectedFormItem.component.type === 'input'">
+          <v-textarea class="cus-v-input" dense filled single-line label="单行文本" auto-grow :rows="1"
+                        v-model="selectedFormItem.component.statement"></v-textarea>
+        </v-card>
+        <v-card class="mt-5" flat v-if="['displayText', 'questionGroup'].includes(selectedFormItem.component.type)">
+          <span class="inputLabel">题目</span>
+
+          <v-textarea class="cus-v-input" dense filled single-line label="多行文本" auto-grow :rows="1"
+                        v-model="selectedFormItem.component.statement"></v-textarea>
+
+
+        </v-card>
+        <v-card class="mt-5" flat v-if="['questionGroup', 'singleSelect', 'multipleSelect', 'fillBlank', 'textarea'].includes(selectedFormItem.component.type)">
+          <span class="inputLabel">内容块</span>
+          <form-item-markdown :form-item-id="selectedFormItem.id" :value="selectedFormItem.component.markdownContent" @change="selectedFormItem.component.markdownContent=$event" :toolbar-icons="() => {
+            return ['undo', 'redo']
+          }" />
         </v-card>
       </div>
     </v-card>
   </v-card>
 </template>
 
-<script src="//cdn.jsdelivr.net/npm/sortablejs@1.8.4/Sortable.min.js"></script>
+<script src="/<$ ctx.app.config.appId $>/public/js/lib/Sortable.min.js"></script>
+<!-- <script src="/<$ ctx.app.config.appId $>/public/js/lib/vuedraggable.umd.min.js"></script> -->
 <script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.20.0/vuedraggable.umd.min.js"></script>
 
 <script>
@@ -222,30 +358,58 @@ Vue.component("form-item-list-generator", {
   template: '#form-item-list-generator',
   vuetify: new Vuetify(),
   name: 'form-item-list-generator',
-  props: {
-    formItemList: {
-      type: Array,
-      default: [],
-      required: true,
-    },
-  },
+  props: ['formItemList'],
   data: () => ({
+    constantCollection:{
+      // text - 题目 input - 填空
+      fillBlankType: {
+        text: '题目',
+        input: '填空'
+      }
+    },
     componentList: [
-      {title: '多行文本', type: 'textarea', outline: '多行文本', property: {}, icon: 'mdi-form-textarea'},
+      {typeDesc: '多行文本', type: 'textarea', statement: '多行文本', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea'},
+      {typeDesc: 'Markdown', type: 'markdown', statement: 'Markdown', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea'},
       {
-        title: '单选',
+        typeDesc: '单选',
         type: 'singleSelect',
-        outline: '单选',
-        property: {selectOptionList: []},
+        statement: '单选',
+        markdownContent: '',
+        selectOptionList: ['选项1', '选项2'],
+        uploadConfig: [],
+        answer: '',
+        score: '',
         icon: 'mdi-checkbox-marked-circle'
       },
       {
-        title: '多选',
+        typeDesc: '多选',
         type: 'multipleSelect',
-        outline: '多选',
-        property: {selectOptionList: []},
+        statement: '多选',
+        markdownContent: '',
+        selectOptionList: ['选项1', '选项2'],
+        uploadConfig: [],
+        answer: [],
+        score: '',
         icon: 'mdi-checkbox-marked'
       },
+      {
+        typeDesc: '填空题',
+        type: 'fillBlank',
+        statement: [
+          {id: 1, type: 'text', value: '文本'},
+          {id: 2, type: 'input', value: '填空', width: '100px'},
+          {id: 3, type: 'text', value: '文本'},
+        ],
+        markdownContent: '',
+        uploadConfig: [],
+        answer: {
+          2: '明月'
+        },
+        score: '',
+        icon: 'mdi-text-recognition'
+      },
+      {typeDesc: '纯标题文本', type: 'displayText', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea'},
+      {typeDesc: '组', type: 'questionGroup', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea'},
     ],
     tempComponent: null,
 
@@ -264,85 +428,191 @@ Vue.component("form-item-list-generator", {
     rightPanels: [0, 1, 2, 3, 4],
   }),
   computed: {
-    selectCanvaIndex() {
-      const index = this.formItemList.findIndex(item => item.id === this.selectedFormItemId);
-      return index;
-    },
+    // selectCanvaId() {
+    //   const index = this.formItemList.findIndex(item => item.id === this.selectedFormItemId);
+    //   return index;
+    // },
     isMobile() {
       return window.innerWidth < 600;
     },
+    optionKey() {
+      return window.formItemListStore.optionKey
+    },
+    selectCanvaId() {
+      return window.formItemListStore.selectCanvaId
+    },
+    selectedFormItem() {
+      let filteredSelectedFormItem = null
+      try {
+        this.formItemList.forEach(item=> {
+            if (item.id === this.selectCanvaId) {
+              filteredSelectedFormItem = item
+              throw Error();
+            }
+            const itemList = item.component.itemList
+            if (Array.isArray(itemList)) {
+              itemList.forEach(item2=> {
+                if (item2.id === this.selectCanvaId) {
+                  filteredSelectedFormItem = item2
+                  throw Error();
+                }
+              })
+            }
+          })
+        } catch (e) {
+        }
+
+
+
+
+      console.log('filteredSelectedFormItem', filteredSelectedFormItem)
+      return filteredSelectedFormItem
+    }
   },
   mounted() {
   },
   destroyed() {
   },
-  watch: {},
+
   async created() {
+
   },
   methods: {
+    uuid() {
+      return window.formItemListFunc.uuid()
+    },
+    formItemSelect(index) {
+      return window.formItemListFunc.formItemSelect(index)
+    },
+
+    resetAnswer(index, type) {
+      // 由于组件ui 选中时改变题目bug，动态设置现有选中答案
+      // index: 这里并不是数字，而是ID
+      let itemIndex = index;
+      if(typeof index === 'string') {
+        itemIndex = this.formItemList.findIndex(item => item.id === index);
+      }
+      if (type === 'singleSelect') {
+        if (!this.formItemList[itemIndex].component.selectOptionList.includes(this.formItemList[itemIndex].component.answer)) {
+          this.formItemList[itemIndex].component.answer = '';
+        }
+      } else {
+        this.formItemList[itemIndex].component.answer = this.formItemList[itemIndex].component.answer ? this.formItemList[itemIndex].component.answer.filter(e => this.formItemList[itemIndex].component.selectOptionList.includes(e)) : [];
+      }
+    },
+    emptyCanva() {
+      this.formItemList = [];
+      this.$emit('change', []);
+    },
     cloneComponent(component) {
       this.tempComponent = component;
     },
     leftComponentDraggableOnEnd(event) {
+      console.log('leftComponentDraggableOnEnd event:', event)
       if (event.from !== event.to) {
         const newIndex = event.newIndex;
-        this.addFormItem(this.tempComponent, newIndex);
+        this.addFormItem(this.tempComponent, newIndex, event);
       }
       this.tempComponent = null;
     },
-    addFormItem(component, targetIndex) {
+    addFormItem(_component, targetIndex, event) {
+      const component = {
+        ..._component,
+        answer: Array.isArray(_component.answer) ? [..._component.answer] : (typeof _component.answer === 'string') ? _component.answer : {..._component.answer},
+        uploadConfig: [..._component.uploadConfig],
+        itemList: []
+      };
+      if(_component.selectOptionList) {
+        component['selectOptionList'] = [..._component.selectOptionList];
+      }
+
       const {type} = component;
       const formItem = {
         id: `${type}_${this.uuid(8)}`,
-        component: _.cloneDeep(component),
-        upload: [],
-        file: {},
-        answerData: {},
+        component
       };
+
       if (!this.formItemList) {
         this.formItemList = [];
       }
+
+
+      if (event) {
+        if (event.to.className.includes('questionGroup') && !formItem.id.includes('questionGroup')) {
+        // 添加到组件到分组
+          let newFormItemList = [...this.formItemList]
+          newFormItemList = newFormItemList.map(item=> {
+            if (event.to.className.includes(item.id)) {
+              item.component.itemList.push(formItem)
+            }
+            return item
+          })
+          this.formItemList = newFormItemList
+          return;
+        }
+      }
+
+
       if (targetIndex > -1) {
         this.formItemList.splice(targetIndex, 0, formItem);
       } else {
-        this.formItemList.push(formItem);
+        this.formItemList = [...this.formItemList, formItem];
       }
+      this.$emit("change", this.formItemList);
+      setTimeout(() => {
+        this.formItemSelect(formItem.id);
+      }, 500);
     },
-    formItemSelect(id) {
-      this.selectedFormItemId = id;
-    },
-    formItemCopy(index, formItem) {
-      const newFormItem = _.cloneDeep(formItem);
-      newFormItem.id = `${newFormItem.component.type}_${this.uuid(8)}`,
-          this.formItemList.splice(index + 1, 0, newFormItem);
-    },
-    emptyCanva() {
-      this.formItemList.splice(0, this.formItemList.length);
-    },
-    formItemDelete(id) {
-      const index = this.formItemList.findIndex((item) => item.id === id);
-      if (index > -1) {
-        this.formItemList.splice(index, 1);
-      }
-    },
+
     propertyAddOption(index) {
-      this.formItemList[this.selectCanvaIndex].component.property.selectOptionList.splice(index, 0, {value: ""});
+      this.selectedFormItem.component.selectOptionList.splice(index, 0, '选项' + (index + 1));
     },
     propertyDeleteOption(index) {
-      this.formItemList[this.selectCanvaIndex].component.property.selectOptionList.splice(index, 1);
+      this.selectedFormItem.component.selectOptionList.splice(index, 1);
     },
-    uuid(t = 21) {
-      let e = "", r = crypto.getRandomValues(new Uint8Array(t));
-      for (; t--;) {
-        let n = 63 & r[t];
-        e += n < 36 ? n.toString(36) : n < 62 ? (n - 26).toString(36).toUpperCase() : n < 63 ? "_" : "-"
-      }
-      ;
-      return e
-    },
+
     getFormItemList() {
       return this.formItemList;
     },
+
+    addFillBlankLine(formIndex, index, type) {
+      const id = Date.now();
+      this.selectedFormItem.component.statement.splice(index + 1, 0, {
+        id, type, value: ''
+      })
+      this.selectedFormItem.component.answer[id] = '';
+    },
+    async editFillBlankLine(formIndex, index, type) {
+      switch (type) {
+        case '剪切':
+        case '复制':
+          this.lineHandler = {
+            type: type === '剪切' ? 'cut' : 'copy',
+            line: this.selectedFormItem.component.statement[index]
+          }
+          break;
+        case '粘贴':
+          this.selectedFormItem.component.statement.splice(index + 1, 0, {
+            ...this.lineHandler.line, id: Date.now()
+          })
+          if (this.lineHandler.type === 'cut') {
+            const i = this.selectedFormItem.component.statement.findIndex(e => e.id === this.lineHandler.line.id);
+            this.selectedFormItem.component.statement.splice(i, 1);
+            this.lineHandler = {
+              type: '',
+              line: {}
+            }
+          }
+          break;
+        case '删除':
+          this.selectedFormItem.component.statement.splice(index, 1);
+          break;
+      }
+    },
+    datadragEndSub(index, event) {
+      console.log(index, event)
+    }
+
   },
 })
 </script>
@@ -397,7 +667,7 @@ Vue.component("form-item-list-generator", {
   flex: 1;
   overflow-y: auto;
   height: 100%;
-  max-height: 100%;
+  max-height: calc(100vh - 200px);
 }
 
 .formItemList .formItem-selected {
@@ -455,6 +725,17 @@ body .theme--light.v-text-field--filled.cus-v-input.black > .v-input__control > 
   top: 50%!important;
   transform: translateY(-50%)!important;
   opacity: 0.3;
+}
+.fill-blank {
+  display: inline-block;
+
+}
+.fill-blank-input {
+  padding-left: 10px;
+  padding-right: 10px;
+  border-bottom: 2px solid gray;
+  margin-left: 5px;
+  margin-right: 5px;
 }
 
 @media (max-width: 500px) {

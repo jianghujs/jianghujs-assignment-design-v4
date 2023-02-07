@@ -1,0 +1,224 @@
+<template id="form-item-list-content">
+  <div>
+    <draggable v-show="formItemList.length > 0" :list="formItemList" :animation="300" :class="keyId"
+      group="componentGroup">
+      <v-hover v-for="(formItem, index) in formItemList" :key="index" v-slot:default="{ hover }">
+        <v-card outlined @click.native.stop="formItemSelect(formItem.id)" :elevation="hover ? 12 : 2"
+          :class="['my-2', selectCanvaId === formItem.id && !hover ? 'formItem-selected' : 'formItem-body']"
+          style="cursor: move" dense>
+          <v-list-item :id="formItem.id">
+
+            <v-list-item-content v-if="formItem.component.type === 'singleSelect'">
+              <v-list-item-title class="formItem-title">{{ index + 1 }}. {{
+                formItem.component.statement
+                }}
+              </v-list-item-title>
+              <v-radio-group v-model="formItem.component.answer">
+                <v-radio hide-details v-for="(option, optionIndex) in formItem.component.selectOptionList"
+                  :key="optionIndex" :value="option" :label="optionKey[optionIndex] + ': ' + option"></v-radio>
+              </v-radio-group>
+            </v-list-item-content>
+
+            <v-list-item-content v-if="formItem.component.type === 'multipleSelect'">
+              <v-list-item-title class="formItem-title">{{ index + 1 }}. {{
+                formItem.component.statement
+                }}
+              </v-list-item-title>
+              <div v-for="(option, optionIndex) in formItem.component.selectOptionList" :key="optionIndex">
+                <div style="display: inline-block">
+                  <v-checkbox hide-details style="margin-top: 0px;" :label="optionKey[optionIndex] + ': ' + option"
+                    hide-details v-model="formItem.component.answer" :value="option" color="red"></v-checkbox>
+                </div>
+              </div>
+            </v-list-item-content>
+
+            <v-list-item-content v-if="formItem.component.type === 'textarea'">
+              <v-list-item-title class="formItem-title">{{ index + 1 }}. {{
+                formItem.component.statement
+                }}
+              </v-list-item-title>
+              <v-textarea dense filled single-line placeholder="请输入答案" hide-details :rows="4"
+                v-model="formItem.component.answer" />
+            </v-list-item-content>
+
+            <v-list-item-content v-if="formItem.component.type === 'markdown'" style="height: 250px">
+              <v-list-item-title class="formItem-title">{{ index + 1 }}. {{
+                formItem.component.statement
+                }}
+              </v-list-item-title>
+
+              <form-item-markdown :value="formItem.component.answer" :form-item-id="formItem.id"
+                @change="updateMarkdownValue" />
+            </v-list-item-content>
+
+            <v-list-item-content v-if="formItem.component.type === 'fillBlank'">
+              <v-list-item-title class="formItem-title">{{ index + 1 }}.
+                <span v-for="(blank, blankIndex) in formItem.component.statement" :key="blankIndex">
+                  <div class="fill-blank" :class="{'fill-blank-input': blank.type === 'input' }">{{ blank.value }}</div>
+                </span>
+              </v-list-item-title>
+            </v-list-item-content>
+
+            <v-list-item-content v-if="formItem.component.type === 'displayText'">
+              <v-list-item-title class="formItem-title">{{ index + 1 }}. {{
+                formItem.component.statement
+                }}
+              </v-list-item-title>
+            </v-list-item-content>
+
+            <v-list-item-content v-if="formItem.component.type === 'questionGroup'">
+              <v-list-item-title class="formItem-title">{{ index + 1 }}. {{
+                formItem.component.statement
+                }}
+              </v-list-item-title>
+              <form-item-list-content :key-id="formItem.id" :form-item-list="formItem.component.itemList" />
+
+            </v-list-item-content>
+
+            <v-list-item-action v-if="selectCanvaId === formItem.id" class="justify-start">
+              <v-btn x-small icon @click.stop="formItemCopy(index, formItem)">
+                <v-icon color="primary">mdi-content-duplicate</v-icon>
+              </v-btn>
+              <v-btn x-small icon @click.stop="formItemDelete(index)">
+                <v-icon color="error">mdi-close-box</v-icon>
+              </v-btn>
+            </v-list-item-action>
+          </v-list-item>
+        </v-card>
+      </v-hover>
+    </draggable>
+
+
+    <v-row v-show="!formItemList.length" align="center" justify="center" class="ma-0 pa-0" style="width: 100%;">
+      <v-card height="100" class="ma-12" width="100%" color="#f5f8fa" style="border: 1px dashed #333333">
+        <draggable :class="keyId" :list="[]" :animation="300" group="componentGroup"
+          style="position: relative; height: 100%;">
+          <v-card-text class="text-center title draggable-placeholder">
+            从左侧拖入或点选组件进行表单设计
+          </v-card-text>
+        </draggable>
+      </v-card>
+    </v-row>
+
+  </div>
+
+</template>
+
+<script>
+  Vue.component("form-item-list-content", {
+    template: '#form-item-list-content',
+    vuetify: new Vuetify(),
+    name: 'form-item-list-content',
+    props: {
+      keyId: String,
+      formItemList: {
+        type: Array,
+        default: () => []
+      },
+      selectedFormItem: {
+        type: Object,
+        default: () => ({})
+      }
+    },
+    data: () => ({
+      markdownReady: [],
+    }),
+    computed: {
+
+      optionKey() {
+        return window.formItemListStore.optionKey
+      },
+
+      selectCanvaId() {
+        return window.formItemListStore.selectCanvaId
+      }
+    },
+    watch: {
+
+      formItemList: {
+        deep: true,
+        handler(val, oldVal) {
+          console.log('formItemList:', val, oldVal)
+
+          this.$emit('change', val);
+        }
+      }
+    },
+    created() {
+      console.log('this.formItemList', this.formItemList)
+    },
+    methods: {
+      uuid() {
+        return window.formItemListFunc.uuid()
+      },
+      formItemSelect(index) {
+        return window.formItemListFunc.formItemSelect(index)
+      },
+      updateMarkdownValue(event) {
+        if (!this.selectedFormItem.component) return
+        this.selectedFormItem.component.answer = event
+      },
+      formItemCopy(index, formItem) {
+        const newFormItem = _.cloneDeep(formItem);
+        newFormItem.id = `${newFormItem.component.type}_${this.uuid(8)}`,
+          this.formItemList.splice(index + 1, 0, newFormItem);
+        this.formItemSelect(newFormItem.id)
+      },
+
+      formItemDelete(index) {
+        // 如果删除当前焦点题目、则自动焦点至上一题
+        if (this.selectCanvaId === index) {
+          // this.formItemSelect(index - 1)
+        }
+        if (index > -1) {
+          this.formItemList.splice(index, 1);
+        }
+      },
+
+      initEditorMd(that, id, content, onImageUpload, change) {
+        that.$nextTick(() => {
+          if (document.getElementById(id)) {
+            document.getElementById(id).innerHTML = `<textarea style=\"display:none;\">${content || ""}</textarea>`;
+            that.editor = editormd(id, {
+              // width  : "100%",
+              // height : "100%",
+              watch: false,
+              autoFocus: false,
+              saveHTMLToTextarea: true,    // 保存 HTML 到 Textarea
+              htmlDecode: "style,script,iframe|on*",
+              path: '/<$ ctx.app.config.appId $>/public/plugins/editor.md/lib/',
+              toolbarIcons: Object.freeze([
+                "undo", "redo", "|",
+                "h1", "h2", "h3", "h4", "h5", "bold", "del", "italic", "quote",
+                "list-ul", "list-ol", "hr", "link",
+              ]),
+              toolbarHandlers: {
+                imageUpload: function (cm, icon, cursor, selection) {
+                  onImageUpload();
+                }
+              },
+              lang: {
+                toolbar: {
+                  toggle: "展开收起",
+                  column: "横向排列",  // 自定义按钮的提示文本，即title属性
+                  articleQuery: "数据列表",
+                }
+              },
+              onchange: function () {
+                change(this.getMarkdown(), this.getPreviewedHTML2());
+              },
+            });
+          } else {
+            requestAnimationFrame(() => {
+              this.initEditorMd(that, id, content, onImageUpload, change);
+            })
+          }
+        })
+      },
+    },
+  })
+</script>
+
+<style scoped>
+
+</style>
