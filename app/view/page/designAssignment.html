@@ -3,8 +3,7 @@
 {% block vueTemplate %}
 
 {% block htmlHead %}
-<link type="text/css" href="<$ static $>/jsoneditor/jsoneditor.css" rel="stylesheet">
-<script src="<$ static $>/jsoneditor/jsoneditor.js"></script>
+
 {% endblock %}
 
 <script type="text/html" id="app-template">
@@ -55,10 +54,9 @@
 {% block vueScript %}
 
 
-{% include 'component/tpl/formItemMarkdown.html' %}
-{% include 'component/tpl/formItemListContent.html' %}
-{% include 'component/tpl/formItemListGenerator.html' %}
-{% include 'component/vueJsonEditor.html' %}
+{% include 'component/formItemMarkdown.html' %}
+{% include 'component/formItemListContent.html' %}
+{% include 'component/formItemListGenerator.html' %}
 
 <script type="module">
 

@@ -411,12 +411,12 @@
 
       async doUpdateItem() {
         await window.jhMask.show();
-        await window.vtoast.loading("修改学生");
+        await window.vtoast.loading("修改作业");
         await window.jianghuAxios({
           data: {
             appData: {
               pageId: 'articleManagement',
-              actionId: 'updateItem',
+              actionId: 'jhUpdateItem',
               actionData: this.updateActionData,
               where: {id: this.updateItemId}
             }
@@ -424,7 +424,7 @@
         })
 
         await window.jhMask.hide();
-        await window.vtoast.success("修改学生成功");
+        await window.vtoast.success("修改作业成功");
       },
 
       async clearUpdateItemData() {
