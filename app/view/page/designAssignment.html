@@ -1,11 +1,6 @@
 {% extends 'template/jhTemplateV4.html'%}
 
 {% block vueTemplate %}
-
-{% block htmlHead %}
-
-{% endblock %}
-
 <script type="text/html" id="app-template">
 <div>
   <v-app mobile-breakpoint="sm">
@@ -34,8 +29,7 @@
       <div style="height: calc(100vh - 300px)">
         <form-item-list-generator
         :form-item-list="articleAssignmentWithAnswer"
-        @change="saveData"
-        :select-canva-id="selectCanvaId"
+        :selected-form-item-id="selectedFormItemId"
         ref="formItemListGenerator"/>
       </div>
     </v-container>
@@ -52,14 +46,19 @@
 {% endblock %}
 
 {% block vueScript %}
-<link rel="stylesheet" href="/<$ ctx.app.config.appId $>/public/plugins/editor.md/css/editormd.min.css"/>
+<!-- 引入额外的库文件 >>>>>>>>>>>>> -->
+<link rel="stylesheet" href="/<$ ctx.app.config.appId $>/public/plugins/editor.md/css/editormd.min.css" />
 <script src="/<$ ctx.app.config.appId $>/public/js/lib/jquery.min.js"></script>
 <script src="/<$ ctx.app.config.appId $>/public/plugins/editor.md/editormd.js"></script>
+<script src="/<$ ctx.app.config.appId $>/public/js/lib/Sortable.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.20.0/vuedraggable.umd.min.js"></script>
+<!-- <<<<<<<<<<<<< 引入额外的库文件 -->
 
-
+<!-- 加载页面组件 >>>>>>>>>>>>> -->
 {% include 'component/formItemMarkdown.html' %}
 {% include 'component/formItemListContent.html' %}
 {% include 'component/formItemListGenerator.html' %}
+<!-- <<<<<<<<<<<<< 加载页面组件 -->
 
 <script type="module">
   new Vue({
@@ -67,8 +66,7 @@
     template: '#app-template',
     vuetify: new Vuetify(),
     data: () => ({
-      formItemList: [],
-      selectCanvaId: '',
+      selectedFormItemId: '',
       optionKey: {
         0: "A",
         1: "B",
@@ -94,7 +92,6 @@
       ],
 
       isMobile: window.innerWidth < 600,
-      formItemListPreviewDrawer: false,
       articleId: null,
       article: null,
       title: null,
@@ -128,14 +125,14 @@
       if (title) {
         this.title = title;
       }
-      this.doUiAction('selectArticleAssignment', articleId);
+      this.doUiAction('getArticleAssignment', articleId);
     },
     mounted() { },
     methods: {
       async doUiAction(uiActionId, uiActionData) {
         switch (uiActionId) {
-          case 'selectArticleAssignment':
-            await this.selectArticleAssignment(uiActionData);
+          case 'getArticleAssignment':
+            await this.getArticleAssignment(uiActionData);
             await this.buildArticleAssignmentWithAnswer(uiActionData);
             break;
           case 'saveArticleAssignment':
@@ -150,10 +147,6 @@
             break;
         }
       },
-      saveData(val) {
-        this.articleAssignmentWithAnswer = val;
-        console.log('articleAssignmentWithAnswer.formItemList', val);
-      },
       buildFormItemList() {
         let list = []
         if (this.articleAssignmentWithAnswer) {
@@ -165,8 +158,8 @@
         }
         return list;
       },
-      // 获取作业详情
-      async selectArticleAssignment(articleId) {
+      // ---------- 初始化作业详情 >>>>>>>>>>>>> ----------
+      async getArticleAssignment(articleId) {
         const result = await window.jianghuAxios({
           data: {
             appData: {
@@ -197,8 +190,11 @@
         })
         this.articleAssignmentWithAnswer = articleAssignmentWithAnswer;
       },
+      // ---------- <<<<<<<<<<<<< 初始化作业详情 ----------
 
-      // 保存作业
+
+      // ---------- 保存作业 >>>>>>>>>>>>> ----------
+      // 核验作业状态
       async vaildArticleAssignment(articleAssignmentPublishStatus) {
         if (!this.article) {
           window.vtoast.fail("文章不存在");
@@ -254,11 +250,14 @@
           this.article.articleAssignmentPublishStatus = articleAssignmentPublishStatus === 'publish' ? articleAssignmentPublishStatus : null;
         }
       },
-      // 作业设计card选中的状态变更
+      // ---------- <<<<<<<<<<<<< 保存作业 ----------
+
+
+      // 更新作业选中的高亮状态
       formItemSelect(index) {
-        this.selectCanvaId = index
+        this.selectedFormItemId = index
       },
-      // 作业card生成随机id
+      // 生成每个作业的随机id
       uuid(t = 21) {
         let e = "", r = crypto.getRandomValues(new Uint8Array(t));
         for (; t--;) {
@@ -270,12 +269,13 @@
       },
     },
     // 使用provide将方法传递给下层所有组件
-    // 直接传selectCanvaId更新group里的内容点击更新不了
+    // 直接传selectedFormItemId更新group里的内容点击更新不了
     provide() {
       return {
         formItemSelect: this.formItemSelect,
         uuid: this.uuid,
-        optionKey: this.optionKey
+        optionKey: this.optionKey,
+        isMobile: this.isMobile
       };
     },
   })

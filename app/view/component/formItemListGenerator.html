@@ -1,6 +1,8 @@
 <template id="form-item-list-generator">
   <v-card color="#f5f8fa" style="max-height: 100%"
     :class="{'d-flex': !isMobile, 'form-item-list-generator-content': !isMobile}">
+
+    <!-- 左侧组件选择列表 >>>>>>>>>>>>> -->
     <v-card style="max-height: 100%; overflow-y: auto;" :style="{'width': isMobile ? '100%' : '300px'}"
       :class="{'pa-4': !isMobile, 'pa-2': isMobile, 'mr-6': !isMobile}">
       <div class="left-component-item-title" :style="{'white-space': 'nowrap'}">
@@ -18,31 +20,29 @@
         </div>
       </draggable>
     </v-card>
+    <!-- <<<<<<<<<<<<< 左侧组件选择列表 -->
 
+    <!-- 组件编辑区 >>>>>>>>>>>>> -->
     <v-card class="formItemList pt-5 px-4" style="position: relative;max-height: 100%; overflow-y: auto;">
       <div class="d-flex justify-end">
-
         <v-btn small color="error" @click.stop="emptyCanva" class="mr-2">
           <span>重置</span>
         </v-btn>
         </v-btn>
-
       </div>
-      <form-item-list-content
-        :selected-form-item="selectedFormItem"
-        :form-item-list="formItemList"
-        :select-canva-id.sync="selectCanvaId"
-      />
-
+      <form-item-list-content :selected-form-item="selectedFormItem" :form-item-list="formItemList"
+        :selected-form-item-id="selectedFormItemId" />
     </v-card>
+    <!-- <<<<<<<<<<<<< 组件编辑区 -->
 
+    <!-- 组件属性编辑区 >>>>>>>>>>>>> -->
     <v-card style="max-height: 100%; overflow-y: auto;" :style="{'width': isMobile ? 'auto' : '300px'}" class="pa-4"
       :class="{'ml-6': !isMobile}">
       <div class="property-title">
         <v-icon>mdi-application-edit-outline</v-icon>
         <span style="transform: translateY(2px); display: inline-block;">组件属性</span>
       </div>
-      <div v-if="selectCanvaId && selectedFormItem">
+      <div v-if="selectedFormItemId && selectedFormItem">
         <v-card class="mt-5" flat v-if="['singleSelect', 'multipleSelect'].includes(selectedFormItem.component.type)">
           <v-row no-gutters>
             <v-col cols="12">
@@ -75,12 +75,12 @@
               </div>
               <v-list class="propertyList" dense style="max-height: 300px; overflow-y: auto;">
                 <template v-for="(optionText, i) in selectedFormItem.component.selectOptionList">
-                  <v-list-item class="pa-0" :data-index="selectCanvaId" :key="selectCanvaId + '-' + i">
+                  <v-list-item class="pa-0" :data-index="selectedFormItemId" :key="selectedFormItemId + '-' + i">
                     <v-list-item-content>
-                      <v-textarea class="cus-v-input" dense :key="selectCanvaId + '-' + i" filled
+                      <v-textarea class="cus-v-input" dense :key="selectedFormItemId + '-' + i" filled
                         :prefix="optionKey[i]+': '" single-line color="success"
                         v-model="selectedFormItem.component.selectOptionList[i]" auto-grow :rows="1"
-                        @input="resetAnswer(selectCanvaId, selectedFormItem.component.type)">
+                        @input="resetAnswer(selectedFormItemId, selectedFormItem.component.type)">
                       </v-textarea>
                     </v-list-item-content>
                     <v-list-item-action class="ml-2">
@@ -180,7 +180,7 @@
                     <v-card>
                       <v-card-text class="pa-0">
                         <v-btn v-for="(type, i) in ['删除']" :key="i"
-                          @click="editFillBlankLine(selectCanvaId, index, type)" text color="primary"
+                          @click="editFillBlankLine(selectedFormItemId, index, type)" text color="primary"
                           :disabled="type === '粘贴'">
                           {{type}}
                         </v-btn>
@@ -216,11 +216,9 @@
         </v-card>
       </div>
     </v-card>
+    <!-- <<<<<<<<<<<<< 组件属性编辑区 -->
   </v-card>
 </template>
-
-<script src="/<$ ctx.app.config.appId $>/public/js/lib/Sortable.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.20.0/vuedraggable.umd.min.js"></script>
 
 <script>
   // 1. v-main 滚动条
@@ -234,21 +232,13 @@
         type: Array,
         default: () => []
       },
-      selectCanvaId: {
+      selectedFormItemId: {
         type: String,
         default: ""
       },
     },
-    inject: ["formItemSelect", "uuid", "optionKey"],
+    inject: ["formItemSelect", "uuid", "optionKey", "isMobile"],
     data: () => ({
-      
-      constantCollection: {
-        // text - 题目 input - 填空
-        fillBlankType: {
-          text: '题目',
-          input: '填空'
-        }
-      },
       componentList: [
         { typeDesc: '多行文本', type: 'textarea', statement: '多行文本', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea' },
         { typeDesc: 'Markdown', type: 'markdown', statement: 'Markdown', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea' },
@@ -294,41 +284,21 @@
         { typeDesc: '组', type: 'questionGroup', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea' },
       ],
       tempComponent: null,
-
-
-      // 当 needle 是空字符串时，我们应当返回什么值呢？这是一个在面试中很好的问题。
-
-      // 对于本题而言，当 needle 是空字符串时我们应当返回 0 。这与 C 语言的 strstr() 以及 Java 的 indexOf() 定义相符。
-      // 著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。
-      // `,
-      //             property: {}, icon: 'mdi-checkbox-marked-circle'
-      //           },
-      //           formItemData: {}
-      //         }
-      //       ],
-      selectedFormItemId: null,
-      rightPanels: [0, 1, 2, 3, 4],
     }),
     computed: {
-      // selectCanvaId() {
-      //   const index = this.formItemList.findIndex(item => item.id === this.selectedFormItemId);
-      //   return index;
-      // },
-      isMobile() {
-        return window.innerWidth < 600;
-      },
+      // 当前选中的作业
       selectedFormItem() {
         let filteredSelectedFormItem = null
         try {
           this.formItemList.forEach(item => {
-            if (item.id === this.selectCanvaId) {
+            if (item.id === this.selectedFormItemId) {
               filteredSelectedFormItem = item
               throw Error();
             }
             const itemList = item.component.itemList
             if (Array.isArray(itemList)) {
               itemList.forEach(item2 => {
-                if (item2.id === this.selectCanvaId) {
+                if (item2.id === this.selectedFormItemId) {
                   filteredSelectedFormItem = item2
                   throw Error();
                 }
@@ -341,37 +311,42 @@
         return filteredSelectedFormItem
       }
     },
-    mounted() {
-    },
-    destroyed() {
-    },
-
-    async created() {
-
-    },
     methods: {
-      formItemSelect(index) {
-        this.$parent.formItemSelect(index)
-      },
-      resetAnswer(index, type) {
-        // 由于组件ui 选中时改变题目bug，动态设置现有选中答案
-        // index: 这里并不是数字，而是ID
-        let itemIndex = index;
-        if (typeof index === 'string') {
-          itemIndex = this.formItemList.findIndex(item => item.id === index);
-        }
-        if (type === 'singleSelect') {
-          if (!this.formItemList[itemIndex].component.selectOptionList.includes(this.formItemList[itemIndex].component.answer)) {
-            this.formItemList[itemIndex].component.answer = '';
-          }
-        } else {
-          this.formItemList[itemIndex].component.answer = this.formItemList[itemIndex].component.answer ? this.formItemList[itemIndex].component.answer.filter(e => this.formItemList[itemIndex].component.selectOptionList.includes(e)) : [];
-        }
-      },
+      // ---------- 组件编辑区操作 >>>>>>>>>>>>> ----------
+      // 重置
       emptyCanva() {
         this.formItemList = [];
-        this.$emit('change', []);
       },
+      async editFillBlankLine(formIndex, index, type) {
+        switch (type) {
+          case '剪切':
+          case '复制':
+            this.lineHandler = {
+              type: type === '剪切' ? 'cut' : 'copy',
+              line: this.selectedFormItem.component.statement[index]
+            }
+            break;
+          case '粘贴':
+            this.selectedFormItem.component.statement.splice(index + 1, 0, {
+              ...this.lineHandler.line, id: Date.now()
+            })
+            if (this.lineHandler.type === 'cut') {
+              const i = this.selectedFormItem.component.statement.findIndex(e => e.id === this.lineHandler.line.id);
+              this.selectedFormItem.component.statement.splice(i, 1);
+              this.lineHandler = {
+                type: '',
+                line: {}
+              }
+            }
+            break;
+          case '删除':
+            this.selectedFormItem.component.statement.splice(index, 1);
+            break;
+        }
+      },
+      // ---------- <<<<<<<<<<<<< 组件编辑区操作 ----------
+
+      // ---------- 组件列表选择区操作 >>>>>>>>>>>>> ----------
       cloneComponent(component) {
         this.tempComponent = component;
       },
@@ -426,23 +401,34 @@
         } else {
           this.formItemList = [...this.formItemList, formItem];
         }
-        this.$emit("change", this.formItemList);
         setTimeout(() => {
           this.formItemSelect(formItem.id);
         }, 500);
       },
+      // ---------- <<<<<<<<<<<<< 组件列表选择区操作 ----------
 
+      // ---------- 组件属性区操作 >>>>>>>>>>>>> ----------
+      resetAnswer(index, type) {
+        // 由于组件ui 选中时改变题目bug，动态设置现有选中答案
+        // index: 这里并不是数字，而是ID
+        let itemIndex = index;
+        if (typeof index === 'string') {
+          itemIndex = this.formItemList.findIndex(item => item.id === index);
+        }
+        if (type === 'singleSelect') {
+          if (!this.formItemList[itemIndex].component.selectOptionList.includes(this.formItemList[itemIndex].component.answer)) {
+            this.formItemList[itemIndex].component.answer = '';
+          }
+        } else {
+          this.formItemList[itemIndex].component.answer = this.formItemList[itemIndex].component.answer ? this.formItemList[itemIndex].component.answer.filter(e => this.formItemList[itemIndex].component.selectOptionList.includes(e)) : [];
+        }
+      },
       propertyAddOption(index) {
         this.selectedFormItem.component.selectOptionList.splice(index, 0, '选项' + (index + 1));
       },
       propertyDeleteOption(index) {
         this.selectedFormItem.component.selectOptionList.splice(index, 1);
       },
-
-      getFormItemList() {
-        return this.formItemList;
-      },
-
       addFillBlankLine(formIndex, index, type) {
         const id = Date.now();
         this.selectedFormItem.component.statement.splice(index + 1, 0, {
@@ -450,38 +436,7 @@
         })
         this.selectedFormItem.component.answer[id] = '';
       },
-      async editFillBlankLine(formIndex, index, type) {
-        switch (type) {
-          case '剪切':
-          case '复制':
-            this.lineHandler = {
-              type: type === '剪切' ? 'cut' : 'copy',
-              line: this.selectedFormItem.component.statement[index]
-            }
-            break;
-          case '粘贴':
-            this.selectedFormItem.component.statement.splice(index + 1, 0, {
-              ...this.lineHandler.line, id: Date.now()
-            })
-            if (this.lineHandler.type === 'cut') {
-              const i = this.selectedFormItem.component.statement.findIndex(e => e.id === this.lineHandler.line.id);
-              this.selectedFormItem.component.statement.splice(i, 1);
-              this.lineHandler = {
-                type: '',
-                line: {}
-              }
-            }
-            break;
-          case '删除':
-            this.selectedFormItem.component.statement.splice(index, 1);
-            break;
-        }
-      },
-      datadragEndSub(index, event) {
-        console.log(index, event)
-      },
-      
-
+      // ---------- <<<<<<<<<<<<< 组件属性区操作 ----------
     },
   })
 </script>

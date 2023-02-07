@@ -4,10 +4,10 @@
       group="componentGroup">
       <v-hover v-for="(formItem, index) in formItemList" :key="index" v-slot:default="{ hover }">
         <v-card outlined @click.native.stop="formItemSelect(formItem.id)" :elevation="hover ? 12 : 2"
-          :class="['my-2', selectCanvaId === formItem.id && !hover ? 'formItem-selected' : 'formItem-body']"
+          :class="['my-2', selectedFormItemId === formItem.id && !hover ? 'formItem-selected' : 'formItem-body']"
           style="cursor: move" dense>
           <v-list-item :id="formItem.id">
-
+            <!-- 单选 -->
             <v-list-item-content v-if="formItem.component.type === 'singleSelect'">
               <v-list-item-title class="formItem-title">{{ index + 1 }}. {{
                 formItem.component.statement
@@ -18,7 +18,7 @@
                   :key="optionIndex" :value="option" :label="optionKey[optionIndex] + ': ' + option"></v-radio>
               </v-radio-group>
             </v-list-item-content>
-
+            <!-- 多选 -->
             <v-list-item-content v-if="formItem.component.type === 'multipleSelect'">
               <v-list-item-title class="formItem-title">{{ index + 1 }}. {{
                 formItem.component.statement
@@ -31,7 +31,7 @@
                 </div>
               </div>
             </v-list-item-content>
-
+            <!-- 多行文本 -->
             <v-list-item-content v-if="formItem.component.type === 'textarea'">
               <v-list-item-title class="formItem-title">{{ index + 1 }}. {{
                 formItem.component.statement
@@ -40,17 +40,16 @@
               <v-textarea dense filled single-line placeholder="请输入答案" hide-details :rows="4"
                 v-model="formItem.component.answer" />
             </v-list-item-content>
-
+            <!-- markdown -->
             <v-list-item-content v-if="formItem.component.type === 'markdown'" style="height: 250px">
               <v-list-item-title class="formItem-title">{{ index + 1 }}. {{
                 formItem.component.statement
                 }}
               </v-list-item-title>
-
               <form-item-markdown :value="formItem.component.answer" :form-item-id="formItem.id"
                 @change="updateMarkdownValue" />
             </v-list-item-content>
-
+            <!-- 填空 -->
             <v-list-item-content v-if="formItem.component.type === 'fillBlank'">
               <v-list-item-title class="formItem-title">{{ index + 1 }}.
                 <span v-for="(blank, blankIndex) in formItem.component.statement" :key="blankIndex">
@@ -58,14 +57,14 @@
                 </span>
               </v-list-item-title>
             </v-list-item-content>
-
+            <!-- 纯文本 -->
             <v-list-item-content v-if="formItem.component.type === 'displayText'">
               <v-list-item-title class="formItem-title">{{ index + 1 }}. {{
                 formItem.component.statement
                 }}
               </v-list-item-title>
             </v-list-item-content>
-
+            <!-- 作业组 -->
             <v-list-item-content v-if="formItem.component.type === 'questionGroup'">
               <v-list-item-title class="formItem-title">{{ index + 1 }}. {{
                 formItem.component.statement
@@ -74,8 +73,8 @@
               <form-item-list-content :key-id="formItem.id" :form-item-list="formItem.component.itemList" />
 
             </v-list-item-content>
-
-            <v-list-item-action v-if="selectCanvaId === formItem.id" class="justify-start">
+            <!-- 作业复制和删除功能栏 -->
+            <v-list-item-action v-if="selectedFormItemId === formItem.id" class="justify-start">
               <v-btn x-small icon @click.stop="formItemCopy(index, formItem)">
                 <v-icon color="primary">mdi-content-duplicate</v-icon>
               </v-btn>
@@ -119,40 +118,24 @@
         type: Object,
         default: () => ({})
       },
-      selectCanvaId: {
+      selectedFormItemId: {
         type: String,
         default: ""
       },
     },
     inject: ["formItemSelect", "uuid", "optionKey"],
-    data: () => ({
-      markdownReady: [],
-    }),
-    watch: {
-      formItemList: {
-        deep: true,
-        handler(val, oldVal) {
-          console.log('formItemList:', val, oldVal)
-
-          this.$emit('change', val);
-        }
-      }
-    },
     methods: {
-      updateMarkdownValue(event) {
-        if (!this.selectedFormItem.component) return
-        this.selectedFormItem.component.answer = event
-      },
+      // 组件复制
       formItemCopy(index, formItem) {
         const newFormItem = _.cloneDeep(formItem);
         newFormItem.id = `${newFormItem.component.type}_${this.uuid(8)}`,
           this.formItemList.splice(index + 1, 0, newFormItem);
         this.formItemSelect(newFormItem.id)
       },
-
+      // 组件删除
       formItemDelete(index) {
         // 如果删除当前焦点题目、则自动焦点至上一题
-        if (this.selectCanvaId === index) {
+        if (this.selectedFormItemId === index) {
           // this.formItemSelect(index - 1)
         }
         if (index > -1) {
@@ -160,45 +143,10 @@
         }
       },
 
-      initEditorMd(that, id, content, onImageUpload, change) {
-        that.$nextTick(() => {
-          if (document.getElementById(id)) {
-            document.getElementById(id).innerHTML = `<textarea style=\"display:none;\">${content || ""}</textarea>`;
-            that.editor = editormd(id, {
-              // width  : "100%",
-              // height : "100%",
-              watch: false,
-              autoFocus: false,
-              saveHTMLToTextarea: true,    // 保存 HTML 到 Textarea
-              htmlDecode: "style,script,iframe|on*",
-              path: '/<$ ctx.app.config.appId $>/public/plugins/editor.md/lib/',
-              toolbarIcons: Object.freeze([
-                "undo", "redo", "|",
-                "h1", "h2", "h3", "h4", "h5", "bold", "del", "italic", "quote",
-                "list-ul", "list-ol", "hr", "link",
-              ]),
-              toolbarHandlers: {
-                imageUpload: function (cm, icon, cursor, selection) {
-                  onImageUpload();
-                }
-              },
-              lang: {
-                toolbar: {
-                  toggle: "展开收起",
-                  column: "横向排列",  // 自定义按钮的提示文本，即title属性
-                  articleQuery: "数据列表",
-                }
-              },
-              onchange: function () {
-                change(this.getMarkdown(), this.getPreviewedHTML2());
-              },
-            });
-          } else {
-            requestAnimationFrame(() => {
-              this.initEditorMd(that, id, content, onImageUpload, change);
-            })
-          }
-        })
+      // markdown更新
+      updateMarkdownValue(event) {
+        if (!this.selectedFormItem.component) return
+        this.selectedFormItem.component.answer = event
       },
     },
   })

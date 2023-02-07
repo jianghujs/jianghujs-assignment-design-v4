@@ -48,7 +48,7 @@
                   <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
                 </span>
                 <span role="button" class="success--text jh-font-size-3 pr-2"
-                @click="doUiAction('assignmentDesignPage', {item})">
+                @click="doUiAction('goAssignmentDesignPage', {item})">
                   <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>出题
                 </span>
                 <span role="button" class="success--text jh-font-size-3"
@@ -78,7 +78,7 @@
           </v-card>
           <!-- <<<<<<<<<<<<< 页面内容 -->
           <!--抽屉遮罩层-->
-          <v-overlay app :value="isCreateDrawerShown || isUpdateDrawerShown || isHelpPageDrawerShown"></v-overlay>
+          <v-overlay app :value="isCreateDrawerShown || isUpdateDrawerShown"></v-overlay>
           <!--新增抽屉-->
           <v-navigation-drawer v-model="isCreateDrawerShown" fixed temporary right width="80%" hide-overlay
             class="elevation-24">
@@ -139,20 +139,6 @@
             </v-btn>
           </v-navigation-drawer>
         </div>
-
-        <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
-        <v-navigation-drawer v-model="isHelpPageDrawerShown" fixed temporary right width="80%" hide-overlay
-          class="elevation-24">
-          <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#3.doUiAction.md`" width="100%"
-            height="100%"></iframe>
-
-          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
-            @click="isHelpPageDrawerShown = false">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-navigation-drawer>
-        <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
-
       </v-main>
     </v-app>
 
@@ -192,7 +178,6 @@
           disabled: true,
         }
       ],
-      isHelpPageDrawerShown: false,
       serverSearchInput: {
         articleTitle: null,
         categoryId: "all",
@@ -204,11 +189,11 @@
 
       // 表格相关数据
       isTableZebraLineMenuShown: false,
-      tableZebraLineMenuPosition: {x: null, y: null},
+      tableZebraLineMenuPosition: { x: null, y: null },
       isTableZebraLineShown: true,
       // 生日日期选择
       isDataPickerShown: false,
-      dataPickerPosition: {x: null, y: null},
+      dataPickerPosition: { x: null, y: null },
       validationRules: {
         requireRules: [
           v => !!v || 'This is required',
@@ -242,12 +227,6 @@
         switch (uiActionId) {
           case 'getTableData':
             await this.getTableData();
-            break;
-          case 'openDataPicker':
-            await this.openDataPicker(uiActionData);
-            break;
-          case 'openTableZebraLineMenu':
-            await this.openTableZebraLineMenu(uiActionData);
             break;
           case 'startCreateItem':
             await this.prepareCreateFormData();
@@ -283,7 +262,7 @@
             await this.clearDeleteItem();
             await this.getTableData();
             break;
-          case 'assignmentDesignPage':
+          case 'goAssignmentDesignPage':
             await this.goToAssignmentDesignPage(uiActionData);
           default:
             console.error("[doUiAction] uiActionId not find", { uiActionId });
@@ -313,16 +292,10 @@
         this.tableData = result.data.appData.resultData.rows;
         this.isTableLoading = false;
       },
-      // ---------- 生日选择 uiAction >>>>>>>>>> --------
-      async openDataPicker(funObj) {
-        this.dataPickerPosition.x = funObj.x - funObj.offsetX;
-        this.dataPickerPosition.y = funObj.y - funObj.offsetY + 40;
-        this.isDataPickerShown = !this.isDataPickerShown;
-      },
-      // ---------- <<<<<<<<<< 生日选择 uiAction --------
+  
       // ---------- 斑马纹开关 uiAction >>>>>>>>>> --------
       async openTableZebraLineMenu(funObj) {
-        this.tableZebraLineMenuPosition.x = funObj.x -funObj.offsetX + 10;
+        this.tableZebraLineMenuPosition.x = funObj.x - funObj.offsetX + 10;
         this.tableZebraLineMenuPosition.y = window.innerHeight - 50;
         this.isTableZebraLineMenuShown = !this.isTableZebraLineMenuShown;
       },
@@ -336,20 +309,20 @@
         this.isCreateDrawerShown = true;
       },
       async prepareCreateValidate() {
-        if(await this.$refs.createForm.validate()) {
+        if (await this.$refs.createForm.validate()) {
           return true;
         }
         throw new Error("请完善表单信息")
       },
 
       async confirmCreateItemDialog() {
-        if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+        if (await window.confirmDialog({ title: "新增", content: "确定新增吗？" }) === false) {
           throw new Error("[confirmCreateFormDialog] 否");
         }
       },
 
       prepareDoCreateItem() {
-        const {id, ...data} = this.createItem;
+        const { id, ...data } = this.createItem;
         this.createActionData = data;
       },
 
@@ -391,20 +364,20 @@
       },
 
       async prepareUpdateValidate() {
-        if(await this.$refs.updateForm.validate()) {
+        if (await this.$refs.updateForm.validate()) {
           return true;
         }
         throw new Error("请完善表单信息")
       },
 
       async confirmUpdateItemDialog() {
-        if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+        if (await window.confirmDialog({ title: "修改", content: "确定修改吗？" }) === false) {
           throw new Error("[confirmUpdateItemDialog] 否");
         }
       },
 
       async prepareDoUpdateItem() {
-        const {id, ...data} = this.updateItem;
+        const { id, ...data } = this.updateItem;
         this.updateItemId = id;
         this.updateActionData = data;
       },
@@ -418,7 +391,7 @@
               pageId: 'articleManagement',
               actionId: 'jhUpdateItem',
               actionData: this.updateActionData,
-              where: {id: this.updateItemId}
+              where: { id: this.updateItemId }
             }
           }
         })
@@ -438,7 +411,7 @@
         this.deleteItem = _.cloneDeep(funObj);
       },
       async confirmDeleteItemDialog() {
-        if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+        if (await window.confirmDialog({ title: "删除", content: "确定删除吗？" }) === false) {
           throw new Error("[confirmDeleteItemDialog] 否");
         }
       },
@@ -467,7 +440,7 @@
       // ---------- <<<<<<<<<<< 删除数据 uiAction  --------
 
       // 跳转作业详情
-      async goToAssignmentDesignPage({item}) {
+      async goToAssignmentDesignPage({ item }) {
         const { articleId, articleTitle } = item;
         window.open(`/${window.appInfo.appId}/page/designAssignment?articleId=${articleId}&title=${articleTitle}`);
       },
