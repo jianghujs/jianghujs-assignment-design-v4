@@ -180,20 +180,12 @@
       ],
       serverSearchInput: {
         articleTitle: null,
-        categoryId: "all",
-        categoryName: "筛选版本",
-        articlePublishStatus: ['login'],
-        isFirstSearch: true,
-        searchSummary: null,
       },
 
       // 表格相关数据
       isTableZebraLineMenuShown: false,
       tableZebraLineMenuPosition: { x: null, y: null },
       isTableZebraLineShown: true,
-      // 生日日期选择
-      isDataPickerShown: false,
-      dataPickerPosition: { x: null, y: null },
       validationRules: {
         requireRules: [
           v => !!v || 'This is required',
@@ -218,7 +210,6 @@
       deleteItem: {},
       deleteItemId: null
     },
-    watch: {},
     mounted() {
       this.doUiAction('getTableData');
     },
@@ -328,7 +319,7 @@
 
       async doCreateItem() {
         await window.jhMask.show();
-        await window.vtoast.loading("新增学生");
+        await window.vtoast.loading("新增作业");
         await window.jianghuAxios({
           data: {
             appData: {
@@ -339,7 +330,7 @@
           }
         })
         await window.jhMask.hide();
-        await window.vtoast.success("新增学生成功");
+        await window.vtoast.success("新增作业成功");
       },
       async closeCreateDrawer() {
         this.isCreateDrawerShown = false;
@@ -420,18 +411,18 @@
         this.deleteItemId = id;
       },
       async doDeleteItem() {
-        await window.vtoast.loading("删除学生");
+        await window.vtoast.loading("删除作业");
         await window.jianghuAxios({
           data: {
             appData: {
               pageId: 'articleManagement',
-              actionId: 'deleteItem',
+              actionId: 'jhDeleteItem',
               actionData: {},
               where: { id: this.deleteItemId }
             }
           }
         });
-        await window.vtoast.success("删除学生成功");
+        await window.vtoast.success("删除作业成功");
       },
       async clearDeleteItem() {
         this.deleteItem = {};
