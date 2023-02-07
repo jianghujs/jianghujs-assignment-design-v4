@@ -31,9 +31,7 @@
       <form-item-list-content
         :selected-form-item="selectedFormItem"
         :form-item-list="formItemList"
-        :select-canva-id="selectCanvaId"
-        :form-item-select="formItemSelect"
-        @update-select-canva-id="formItemSelect"
+        :select-canva-id.sync="selectCanvaId"
       />
 
     </v-card>
@@ -352,10 +350,6 @@
         } catch (e) {
         }
 
-
-
-
-        console.log('filteredSelectedFormItem', filteredSelectedFormItem)
         return filteredSelectedFormItem
       }
     },
@@ -369,7 +363,7 @@
     },
     methods: {
       formItemSelect(index) {
-        this.$emit('update-select-canva-id', index)
+        this.$emit('update:select-canva-id', index)
       },
       resetAnswer(index, type) {
         // 由于组件ui 选中时改变题目bug，动态设置现有选中答案

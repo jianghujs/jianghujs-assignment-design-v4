@@ -155,7 +155,7 @@
     },
     methods: {
       formItemSelect(index) {
-        this.$emit('update-select-canva-id', index)
+        this.$emit('update:select-canva-id', index)
       },
       updateMarkdownValue(event) {
         if (!this.selectedFormItem.component) return

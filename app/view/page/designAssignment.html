@@ -35,8 +35,7 @@
         <form-item-list-generator
         :form-item-list="articleAssignmentWithAnswer"
         @change="saveData"
-        :select-canva-id="selectCanvaId"
-        @update-select-canva-id="formItemSelect"
+        :select-canva-id.sync="selectCanvaId"
         ref="formItemListGenerator"/>
       </div>
     </v-container>
@@ -67,7 +66,6 @@
     data: () => ({
       formItemList: [],
       selectCanvaId: '',
-
 
       breadcrumbs: [
         {
@@ -103,7 +101,7 @@
         handler() {
           this.buildFormItemList();
         }
-      }
+      },
     },
     async created() {
       const urlParams = new URLSearchParams(location.search);
