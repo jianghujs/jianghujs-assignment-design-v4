@@ -39,20 +39,20 @@ const actionDataScheme = Object.freeze({
   },
 });
 
-class ArticleService extends Service {
+class AssignmentService extends Service {
 
   async fillInsertItemParamsBeforeHook() {
     const { userId, username } = this.ctx.userInfo;
     const time = dayjs().format();
-    const tableName = "article";
-    const columnName = "articleId";
-    const articleId = await idGenerateUtil.idPlus({
+    const tableName = "assignment";
+    const columnName = "assignmentId";
+    const assignmentId = await idGenerateUtil.idPlus({
       knex: this.app.jianghuKnex,
       tableName,
       columnName,
     });
-    Object.assign(this.ctx.request.body.appData.actionData, { articleId })
+    Object.assign(this.ctx.request.body.appData.actionData, { assignmentId })
   }
 }
 
-module.exports = ArticleService;
+module.exports = AssignmentService;

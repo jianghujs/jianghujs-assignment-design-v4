@@ -11,14 +11,14 @@
           <v-col>
             <div class="mt-4 text-subtitle-1">
               【{{ title }}】的作业设计
-              <span style="font-size: 1rem;" :class="{'d-block': isMobile}">(ID: {{ articleId }})</span>
+              <span style="font-size: 1rem;" :class="{'d-block': isMobile}">(ID: {{ assignmentId }})</span>
             </div>
             <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
           </v-col>
 
           <v-col class="d-flex" :class="{'pt-2': isMobile, 'pl-0': isMobile, 'pr-0': !isMobile}" style="justify-content: end">
-            <v-btn color="success" dark class="elevation-0 mr-2" v-if="article && article.articleAssignmentPublishStatus !== 'publish'" @click="doUiAction('saveArticleAssignment', false)">保存</v-btn>
-            <v-btn color="error" dark class="elevation-0 mr-2" v-if="article && article.articleAssignmentPublishStatus !== 'publish'" @click="doUiAction('saveArticleAssignment', 'publish')">提交</v-btn>
+            <v-btn color="success" dark class="elevation-0 mr-2" v-if="assignment && assignment.assignmentSubmitStatus !== 'publish'" @click="doUiAction('saveArticleAssignment', false)">保存</v-btn>
+            <v-btn color="error" dark class="elevation-0 mr-2" v-if="assignment && assignment.assignmentSubmitStatus !== 'publish'" @click="doUiAction('saveArticleAssignment', 'publish')">提交</v-btn>
             <div v-else>
               <v-btn color="error" dark class="elevation-0 mr-2" disabled >已提交，不能修改</v-btn>
               <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('saveArticleAssignment', 'cancel')">撤销提交</v-btn>
@@ -28,7 +28,7 @@
       </div>
       <div style="height: calc(100vh - 300px)">
         <form-item-list-generator
-        :form-item-list="articleAssignmentWithAnswer"
+        :form-item-list="assignmentFormItemListWithAnswer"
         :selected-form-item-id="selectedFormItemId"
         @change="doUiAction('updateFormItemList', $event)"
         ref="formItemListGenerator"/>
@@ -93,11 +93,11 @@
       ],
 
       isMobile: window.innerWidth < 600,
-      articleId: null,
-      article: null,
+      assignmentId: null,
+      assignment: null,
       title: null,
       saveActionData: {},
-      articleAssignmentWithAnswer: [],
+      assignmentFormItemListWithAnswer: [],
       codemirrorOptions: {
         mode: 'application/json',
         theme: 'material-darker',
@@ -109,7 +109,7 @@
 
     }),
     watch: {
-      articleAssignmentWithAnswer: {
+      assignmentFormItemListWithAnswer: {
         deep: true,
         handler() {
           this.buildFormItemList();
@@ -118,30 +118,30 @@
     },
     async created() {
       const urlParams = new URLSearchParams(location.search);
-      const articleId = urlParams.get('articleId');
+      const assignmentId = urlParams.get('assignmentId');
       const title = urlParams.get('title');
-      if (articleId) {
-        this.articleId = articleId;
+      if (assignmentId) {
+        this.assignmentId = assignmentId;
       }
       if (title) {
         this.title = title;
       }
-      this.doUiAction('getArticleAssignment', articleId);
+      this.doUiAction('getAssignment', assignmentId);
     },
     mounted() { },
     methods: {
       async doUiAction(uiActionId, uiActionData) {
         switch (uiActionId) {
-          case 'getArticleAssignment':
-            await this.getArticleAssignment(uiActionData);
-            await this.buildArticleAssignmentWithAnswer(uiActionData);
+          case 'getAssignment':
+            await this.getAssignment(uiActionData);
+            await this.buildassignmentFormItemListWithAnswer(uiActionData);
             break;
           case 'saveArticleAssignment':
             await this.vaildArticleAssignment(uiActionData);
             await this.buildAssignmentItemFile(uiActionData);
             await this.createSaveActionData(uiActionData);
             await this.saveArticleAssignmentRequest(uiActionData);
-            await this.syncArticleAssignmentPublishStatus(uiActionData);
+            await this.syncassignmentSubmitStatus(uiActionData);
             break;
           case 'updateFormItemList':
             await this.updateFormItemList(uiActionData);
@@ -152,8 +152,8 @@
       },
       buildFormItemList() {
         let list = []
-        if (this.articleAssignmentWithAnswer) {
-          list = _.cloneDeep(this.articleAssignmentWithAnswer);
+        if (this.assignmentFormItemListWithAnswer) {
+          list = _.cloneDeep(this.assignmentFormItemListWithAnswer);
           list.forEach(item => {
             // delete item.answerData;
             item.userData = {};
@@ -162,13 +162,13 @@
         return list;
       },
       // ---------- 初始化作业详情 >>>>>>>>>>>>> ----------
-      async getArticleAssignment(articleId) {
+      async getAssignment(assignmentId) {
         const result = await window.jianghuAxios({
           data: {
             appData: {
               pageId: 'designAssignment',
               actionId: 'selectAssignment',
-              where: { articleId: this.articleId }
+              where: { assignmentId: this.assignmentId }
             }
           }
         });
@@ -178,12 +178,12 @@
           return;
         }
 
-        this.article = result.data.appData.resultData.rows[0];
+        this.assignment = result.data.appData.resultData.rows[0];
       },
 
-      buildArticleAssignmentWithAnswer() {
-        const articleAssignmentWithAnswer = JSON.parse(this.article.articleAssignmentWithAnswer || '[]');
-        _.forEach(articleAssignmentWithAnswer, (item, index) => {
+      buildassignmentFormItemListWithAnswer() {
+        const assignmentFormItemListWithAnswer = JSON.parse(this.assignment.assignmentFormItemListWithAnswer || '[]');
+        _.forEach(assignmentFormItemListWithAnswer, (item, index) => {
           if (!item.hasOwnProperty('upload')) {
             item.upload = [];
           }
@@ -191,49 +191,48 @@
             item.file = {};
           }
         })
-        this.articleAssignmentWithAnswer = articleAssignmentWithAnswer;
+        this.assignmentFormItemListWithAnswer = assignmentFormItemListWithAnswer;
       },
       // ---------- <<<<<<<<<<<<< 初始化作业详情 ----------
 
 
       // ---------- 保存作业 >>>>>>>>>>>>> ----------
       // 核验作业状态
-      async vaildArticleAssignment(articleAssignmentPublishStatus) {
-        if (!this.article) {
+      async vaildArticleAssignment(assignmentSubmitStatus) {
+        if (!this.assignment) {
           window.vtoast.fail("文章不存在");
           throw new Error("[saveArticleAssignment：文章不存在]")
         }
 
-        if (articleAssignmentPublishStatus === 'publish' && !await window.confirmDialog({ title: '提交后请勿再次修改保存', content: '确定提交吗？' })) {
+        if (assignmentSubmitStatus === 'publish' && !await window.confirmDialog({ title: '提交后请勿再次修改保存', content: '确定提交吗？' })) {
           throw new Error("[saveArticleAssignment:confirmDialog：提交后请勿再次修改保存,确定提交吗], 否")
         }
       },
       buildAssignmentItemFile() {
-        _.forEach(this.articleAssignmentWithAnswer, (item, index) => {
+        _.forEach(this.assignmentFormItemListWithAnswer, (item, index) => {
           item.file = {}
           _.forEach(item.upload, (type, i) => {
             item.file[type] = '';
           })
         })
       },
-      createSaveActionData(articleAssignmentPublishStatus) {
+      createSaveActionData(assignmentSubmitStatus) {
         this.saveActionData = {};
-        const articleAssignment = _.cloneDeep(this.articleAssignmentWithAnswer);
+        const articleAssignment = _.cloneDeep(this.assignmentFormItemListWithAnswer);
         articleAssignment.forEach(formItem => {
           formItem.answerData = {};
         })
         this.saveActionData = {
-          articleAssignmentWithAnswer: JSON.stringify(this.articleAssignmentWithAnswer),
-          articleAssignment: JSON.stringify(articleAssignment),
+          assignmentFormItemListWithAnswer: JSON.stringify(this.assignmentFormItemListWithAnswer),
         };
-        if (articleAssignmentPublishStatus === 'publish') {
-          this.saveActionData.articleAssignmentPublishStatus = articleAssignmentPublishStatus;
+        if (assignmentSubmitStatus === 'publish') {
+          this.saveActionData.assignmentSubmitStatus = assignmentSubmitStatus;
         }
-        if (articleAssignmentPublishStatus === 'cancel') {
-          this.saveActionData.articleAssignmentPublishStatus = null;
+        if (assignmentSubmitStatus === 'cancel') {
+          this.saveActionData.assignmentSubmitStatus = null;
         }
       },
-      async saveArticleAssignmentRequest(articleAssignmentPublishStatus) {
+      async saveArticleAssignmentRequest(assignmentSubmitStatus) {
         window.vtoast.loading("保存");
         await window.jianghuAxios({
           data: {
@@ -241,16 +240,16 @@
               pageId: 'designAssignment',
               actionId: 'updateAssignment',
               actionData: this.saveActionData,
-              where: { articleId: this.articleId }
+              where: { assignmentId: this.assignmentId }
             }
           }
         });
-        const msg = articleAssignmentPublishStatus === 'publish' ? '提交成功' : articleAssignmentPublishStatus === 'cancel' ? "撤销成功" : "保存成功";
+        const msg = assignmentSubmitStatus === 'publish' ? '提交成功' : assignmentSubmitStatus === 'cancel' ? "撤销成功" : "保存成功";
         window.vtoast.success(msg);
       },
-      syncArticleAssignmentPublishStatus(articleAssignmentPublishStatus) {
-        if (articleAssignmentPublishStatus) {
-          this.article.articleAssignmentPublishStatus = articleAssignmentPublishStatus === 'publish' ? articleAssignmentPublishStatus : null;
+      syncassignmentSubmitStatus(assignmentSubmitStatus) {
+        if (assignmentSubmitStatus) {
+          this.assignment.assignmentSubmitStatus = assignmentSubmitStatus === 'publish' ? assignmentSubmitStatus : null;
         }
       },
       // ---------- <<<<<<<<<<<<< 保存作业 ----------
@@ -272,7 +271,7 @@
       },
 
       updateFormItemList(val) {
-        this.articleAssignmentWithAnswer = val;
+        this.assignmentFormItemListWithAnswer = val;
       },
     },
     // 使用provide将方法传递给下层所有组件

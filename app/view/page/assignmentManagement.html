@@ -44,13 +44,15 @@
               <!--表格行操作按钮-->
               <template v-slot:item.action="{ item }">
                 <span role="button" class="success--text jh-font-size-3 pr-2"
-                  @click="doUiAction('startUpdateItem', item)">
-                  <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
-                </span>
-                <span role="button" class="success--text jh-font-size-3 pr-2"
                 @click="doUiAction('goAssignmentDesignPage', {item})">
                   <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>出题
                 </span>
+                
+                <span role="button" class="success--text jh-font-size-3 pr-2"
+                  @click="doUiAction('startUpdateItem', item)">
+                  <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
+                </span>
+                
                 <span role="button" class="success--text jh-font-size-3"
                   @click="doUiAction('deleteItem', item)">
                   <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
@@ -91,7 +93,7 @@
               <v-row class="mt-0 px-6">
                 <v-col cols="12" sm="12" md="4">
                   <span class="jh-input-label">作业标题</span>
-                  <v-text-field class="jh-v-input" dense single-line filled label="作业标题" v-model="createItem.articleTitle"
+                  <v-text-field class="jh-v-input" dense single-line filled label="作业标题" v-model="createItem.assignmentName"
                     :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
               </v-row>
@@ -119,7 +121,7 @@
               <v-row class="mt-0 px-6">
                 <v-col cols="12" sm="12" md="4">
                   <span class="jh-input-label">作业标题</span>
-                  <v-text-field class="jh-v-input" dense single-line filled label="作业标题" v-model="updateItem.articleTitle"
+                  <v-text-field class="jh-v-input" dense single-line filled label="作业标题" v-model="updateItem.assignmentName"
                     :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
                 
@@ -179,7 +181,7 @@
         }
       ],
       serverSearchInput: {
-        articleTitle: null,
+        assignmentName: null,
       },
 
       // 表格相关数据
@@ -196,8 +198,8 @@
       tableData: [],
       headers: [
         { text: '操作', value: 'action', align: 'center', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed' },
-        { text: "ID", value: "articleId", width: 80, class: 'fixed', cellClass: 'fixed' },
-        { text: "作业标题", value: "articleTitle", width: 300 },
+        { text: "ID", value: "assignmentId", width: 80, class: 'fixed', cellClass: 'fixed' },
+        { text: "作业名称", value: "assignmentName", width: 300 },
       ],
 
       isCreateDrawerShown: false,
@@ -266,13 +268,10 @@
         const result = await window.jianghuAxios({
           data: {
             appData: {
-              pageId: 'articleManagement',
+              pageId: 'assignmentManagement',
               actionId: 'selectItemList',
-              where: {
-                articlePublishStatus: null
-              },
               whereLike: {
-                articleTitle: this.serverSearchInput.articleTitle,
+                assignmentName: this.serverSearchInput.assignmentName,
               },
               limit: (this.serverSearchInput.isFirstSearch && this.serverSearchInput.categoryId === 'all') ? 200 : 99999999,
               orderBy: [{ column: 'id', order: 'desc' }]
@@ -323,7 +322,7 @@
         await window.jianghuAxios({
           data: {
             appData: {
-              pageId: 'articleManagement',
+              pageId: 'assignmentManagement',
               actionId: 'jhInsertItem',
               actionData: this.createActionData
             }
@@ -379,7 +378,7 @@
         await window.jianghuAxios({
           data: {
             appData: {
-              pageId: 'articleManagement',
+              pageId: 'assignmentManagement',
               actionId: 'jhUpdateItem',
               actionData: this.updateActionData,
               where: { id: this.updateItemId }
@@ -415,7 +414,7 @@
         await window.jianghuAxios({
           data: {
             appData: {
-              pageId: 'articleManagement',
+              pageId: 'assignmentManagement',
               actionId: 'jhDeleteItem',
               actionData: {},
               where: { id: this.deleteItemId }
@@ -432,8 +431,8 @@
 
       // 跳转作业详情
       async goToAssignmentDesignPage({ item }) {
-        const { articleId, articleTitle } = item;
-        window.open(`/${window.appInfo.appId}/page/designAssignment?articleId=${articleId}&title=${articleTitle}`);
+        const { assignmentId, assignmentName } = item;
+        window.open(`/${window.appInfo.appId}/page/designAssignment?assignmentId=${assignmentId}&title=${assignmentName}`);
       },
     }
   })
