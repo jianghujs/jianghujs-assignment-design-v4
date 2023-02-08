@@ -30,7 +30,7 @@
         <form-item-list-generator
         :form-item-list="articleAssignmentWithAnswer"
         :selected-form-item-id="selectedFormItemId"
-        @change="saveData"
+        @change="doUiAction('updateFormItemList', $event)"
         ref="formItemListGenerator"/>
       </div>
     </v-container>
@@ -143,6 +143,8 @@
             await this.saveArticleAssignmentRequest(uiActionData);
             await this.syncArticleAssignmentPublishStatus(uiActionData);
             break;
+          case 'updateFormItemList':
+            await this.updateFormItemList(uiActionData);
           default:
             console.error("[doUiAction] uiActionId not find", { uiActionId });
             break;
@@ -269,7 +271,7 @@
         return e
       },
 
-      saveData(val) {
+      updateFormItemList(val) {
         this.articleAssignmentWithAnswer = val;
       },
     },
