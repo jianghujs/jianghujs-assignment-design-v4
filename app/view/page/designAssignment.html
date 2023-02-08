@@ -28,7 +28,7 @@
       </div>
       <div style="height: calc(100vh - 300px)">
         <form-item-list-generator
-        :form-item-list="assignmentFormItemListWithAnswer"
+        :form-item-list="assignmentStandardAnswer"
         :selected-form-item-id="selectedFormItemId"
         @change="doUiAction('updateFormItemList', $event)"
         ref="formItemListGenerator"/>
@@ -97,7 +97,7 @@
       assignment: null,
       title: null,
       saveActionData: {},
-      assignmentFormItemListWithAnswer: [],
+      assignmentStandardAnswer: [],
       codemirrorOptions: {
         mode: 'application/json',
         theme: 'material-darker',
@@ -109,7 +109,7 @@
 
     }),
     watch: {
-      assignmentFormItemListWithAnswer: {
+      assignmentStandardAnswer: {
         deep: true,
         handler() {
           this.buildFormItemList();
@@ -134,7 +134,7 @@
         switch (uiActionId) {
           case 'getAssignment':
             await this.getAssignment(uiActionData);
-            await this.buildassignmentFormItemListWithAnswer(uiActionData);
+            await this.buildassignmentStandardAnswer(uiActionData);
             break;
           case 'saveArticleAssignment':
             await this.vaildArticleAssignment(uiActionData);
@@ -152,8 +152,8 @@
       },
       buildFormItemList() {
         let list = []
-        if (this.assignmentFormItemListWithAnswer) {
-          list = _.cloneDeep(this.assignmentFormItemListWithAnswer);
+        if (this.assignmentStandardAnswer) {
+          list = _.cloneDeep(this.assignmentStandardAnswer);
           list.forEach(item => {
             // delete item.answerData;
             item.userData = {};
@@ -181,9 +181,9 @@
         this.assignment = result.data.appData.resultData.rows[0];
       },
 
-      buildassignmentFormItemListWithAnswer() {
-        const assignmentFormItemListWithAnswer = JSON.parse(this.assignment.assignmentFormItemListWithAnswer || '[]');
-        _.forEach(assignmentFormItemListWithAnswer, (item, index) => {
+      buildassignmentStandardAnswer() {
+        const assignmentStandardAnswer = JSON.parse(this.assignment.assignmentStandardAnswer || '[]');
+        _.forEach(assignmentStandardAnswer, (item, index) => {
           if (!item.hasOwnProperty('upload')) {
             item.upload = [];
           }
@@ -191,7 +191,7 @@
             item.file = {};
           }
         })
-        this.assignmentFormItemListWithAnswer = assignmentFormItemListWithAnswer;
+        this.assignmentStandardAnswer = assignmentStandardAnswer;
       },
       // ---------- <<<<<<<<<<<<< 初始化作业详情 ----------
 
@@ -209,7 +209,7 @@
         }
       },
       buildAssignmentItemFile() {
-        _.forEach(this.assignmentFormItemListWithAnswer, (item, index) => {
+        _.forEach(this.assignmentStandardAnswer, (item, index) => {
           item.file = {}
           _.forEach(item.upload, (type, i) => {
             item.file[type] = '';
@@ -218,12 +218,12 @@
       },
       createSaveActionData(assignmentSubmitStatus) {
         this.saveActionData = {};
-        const articleAssignment = _.cloneDeep(this.assignmentFormItemListWithAnswer);
+        const articleAssignment = _.cloneDeep(this.assignmentStandardAnswer);
         articleAssignment.forEach(formItem => {
           formItem.answerData = {};
         })
         this.saveActionData = {
-          assignmentFormItemListWithAnswer: JSON.stringify(this.assignmentFormItemListWithAnswer),
+          assignmentStandardAnswer: JSON.stringify(this.assignmentStandardAnswer),
         };
         if (assignmentSubmitStatus === 'publish') {
           this.saveActionData.assignmentSubmitStatus = assignmentSubmitStatus;
@@ -271,7 +271,7 @@
       },
 
       updateFormItemList(val) {
-        this.assignmentFormItemListWithAnswer = val;
+        this.assignmentStandardAnswer = val;
       },
     },
     // 使用provide将方法传递给下层所有组件

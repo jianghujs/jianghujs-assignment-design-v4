@@ -93,7 +93,7 @@
               <v-row class="mt-0 px-6">
                 <v-col cols="12" sm="12" md="4">
                   <span class="jh-input-label">作业标题</span>
-                  <v-text-field class="jh-v-input" dense single-line filled label="作业标题" v-model="createItem.assignmentName"
+                  <v-text-field class="jh-v-input" dense single-line filled label="作业标题" v-model="createItem.articleTitle"
                     :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
               </v-row>
@@ -121,7 +121,7 @@
               <v-row class="mt-0 px-6">
                 <v-col cols="12" sm="12" md="4">
                   <span class="jh-input-label">作业标题</span>
-                  <v-text-field class="jh-v-input" dense single-line filled label="作业标题" v-model="updateItem.assignmentName"
+                  <v-text-field class="jh-v-input" dense single-line filled label="作业标题" v-model="updateItem.articleTitle"
                     :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
                 
@@ -181,7 +181,7 @@
         }
       ],
       serverSearchInput: {
-        assignmentName: null,
+        articleTitle: null,
       },
 
       // 表格相关数据
@@ -199,7 +199,7 @@
       headers: [
         { text: '操作', value: 'action', align: 'center', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed' },
         { text: "ID", value: "assignmentId", width: 80, class: 'fixed', cellClass: 'fixed' },
-        { text: "作业名称", value: "assignmentName", width: 300 },
+        { text: "作业名称", value: "articleTitle", width: 300 },
       ],
 
       isCreateDrawerShown: false,
@@ -271,7 +271,7 @@
               pageId: 'assignmentManagement',
               actionId: 'selectItemList',
               whereLike: {
-                assignmentName: this.serverSearchInput.assignmentName,
+                articleTitle: this.serverSearchInput.articleTitle,
               },
               limit: (this.serverSearchInput.isFirstSearch && this.serverSearchInput.categoryId === 'all') ? 200 : 99999999,
               orderBy: [{ column: 'id', order: 'desc' }]
@@ -431,8 +431,8 @@
 
       // 跳转作业详情
       async goToAssignmentDesignPage({ item }) {
-        const { assignmentId, assignmentName } = item;
-        window.open(`/${window.appInfo.appId}/page/designAssignment?assignmentId=${assignmentId}&title=${assignmentName}`);
+        const { assignmentId, articleTitle } = item;
+        window.open(`/${window.appInfo.appId}/page/designAssignment?assignmentId=${assignmentId}&title=${articleTitle}`);
       },
     }
   })
