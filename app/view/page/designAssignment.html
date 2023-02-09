@@ -7,16 +7,16 @@
     <jh-menu />
     <v-container class="mt-15 px-10">
       <div>
-        <v-row class="ma-0 align-center flex-none pa-0" :class="{'pa-2': !isMobile, 'pa-2': isMobile}" align="center" style="height: 100%;">
+        <v-row class="ma-0 align-center flex-none pa-0" class="pa-2" align="center" style="height: 100%;">
           <v-col>
             <div class="mt-4 text-subtitle-1">
               【{{ title }}】的作业设计
-              <span style="font-size: 1rem;" :class="{'d-block': isMobile}">(ID: {{ assignmentId }})</span>
+              <span style="font-size: 1rem;" class="sm-hide">(ID: {{ assignmentId }})</span>
             </div>
             <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
           </v-col>
 
-          <v-col class="d-flex" :class="{'pt-2': isMobile, 'pl-0': isMobile, 'pr-0': !isMobile}" style="justify-content: end">
+          <v-col class="d-flex sm-pt-2 sm-pl-0 md-pr-0" style="justify-content: end">
             <v-btn color="success" dark class="elevation-0 mr-2" v-if="assignment && assignment.assignmentSubmitStatus !== 'publish'" @click="doUiAction('saveArticleAssignment', false)">保存</v-btn>
             <v-btn color="error" dark class="elevation-0 mr-2" v-if="assignment && assignment.assignmentSubmitStatus !== 'publish'" @click="doUiAction('saveArticleAssignment', 'publish')">提交</v-btn>
             <div v-else>
@@ -92,7 +92,6 @@
         }
       ],
 
-      isMobile: window.innerWidth < 600,
       assignmentId: null,
       assignment: null,
       title: null,
@@ -128,7 +127,6 @@
       }
       this.doUiAction('getAssignment', assignmentId);
     },
-    mounted() { },
     methods: {
       async doUiAction(uiActionId, uiActionData) {
         switch (uiActionId) {
@@ -180,7 +178,7 @@
 
         this.assignment = result.data.appData.resultData.rows[0];
       },
-
+      
       buildassignmentStandardAnswer() {
         const assignmentStandardAnswer = JSON.parse(this.assignment.assignmentStandardAnswer || '[]');
         _.forEach(assignmentStandardAnswer, (item, index) => {
@@ -281,22 +279,27 @@
         formItemSelect: this.formItemSelect,
         uuid: this.uuid,
         optionKey: this.optionKey,
-        isMobile: this.isMobile
       };
     },
   })
 </script>
 
 <style scoped>
-  html {
-    height: 100vh;
-    overflow-y: hidden;
-    min-width: 950px;
-    overflow-x: scroll;
+  @media (max-width: 600px) {
+    .sm-hide {
+      display: none;
+    }
+    .sm-pt-2 {
+      padding-top: 10px;
+    }
+    .sm-pl-0 {
+      padding-left: 0;
+    }
   }
-
-  .v-list-item {
-    height: unset;
+  @media (min-width: 600px) {
+    .md-pr-0 {
+      padding-right: 0;
+    }
   }
 </style>
 {% endblock %}

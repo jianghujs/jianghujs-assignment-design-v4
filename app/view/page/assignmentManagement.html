@@ -48,7 +48,7 @@
               <!--表格行操作按钮-->
               <template v-slot:item.action="{ item }">
                 <span role="button" class="success--text jh-font-size-3 pr-2"
-                @click="doUiAction('goAssignmentDesignPage', {item})">
+                @click="doUiAction('goToAssignmentDesignPage', {item})">
                   <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>出题
                 </span>
                 
@@ -273,7 +273,7 @@
             await this.clearDeleteItem();
             await this.getTableData();
             break;
-          case 'goAssignmentDesignPage':
+          case 'goToAssignmentDesignPage':
             await this.goToAssignmentDesignPage(uiActionData);
           default:
             console.error("[doUiAction] uiActionId not find", { uiActionId });

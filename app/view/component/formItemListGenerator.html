@@ -237,7 +237,7 @@
         default: ""
       },
     },
-    inject: ["formItemSelect", "uuid", "optionKey", "isMobile"],
+    inject: ["formItemSelect", "uuid", "optionKey"],
     data: () => ({
       componentList: [
         { typeDesc: '多行文本', type: 'textarea', statement: '多行文本', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea' },
@@ -286,6 +286,8 @@
       tempComponent: null,
     }),
     computed: {
+      isMobile() { return window.innerWidth < 600},
+
       // 当前选中的作业
       selectedFormItem() {
         let filteredSelectedFormItem = null
