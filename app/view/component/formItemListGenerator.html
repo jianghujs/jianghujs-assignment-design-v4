@@ -180,7 +180,7 @@
                     <v-card>
                       <v-card-text class="pa-0">
                         <v-btn v-for="(type, i) in ['删除']" :key="i"
-                          @click="editFillBlankLine(selectedFormItemId, index, type)" text color="primary"
+                          @click="editFillBlankLine(selectCanvaId, index, type)" text color="primary"
                           :disabled="type === '粘贴'">
                           {{type}}
                         </v-btn>
@@ -239,6 +239,13 @@
     },
     inject: ["formItemSelect", "uuid", "optionKey"],
     data: () => ({
+      constantCollection: {
+        // text - 题目 input - 填空
+        fillBlankType: {
+          text: '题目',
+          input: '填空'
+        }
+      },
       componentList: [
         { typeDesc: '多行文本', type: 'textarea', statement: '多行文本', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea' },
         { typeDesc: 'Markdown', type: 'markdown', statement: 'Markdown', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea' },
@@ -286,7 +293,7 @@
       tempComponent: null,
     }),
     computed: {
-      isMobile() { return window.innerWidth < 600},
+      isMobile() { return window.innerWidth < 600 },
 
       // 当前选中的作业
       selectedFormItem() {
@@ -309,7 +316,6 @@
           })
         } catch (e) {
         }
-
         return filteredSelectedFormItem
       }
     },
