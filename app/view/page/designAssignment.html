@@ -16,7 +16,7 @@
             <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
           </v-col>
 
-          <v-col class="d-flex sm-pt-2 sm-pl-0 md-pr-0" style="justify-content: end">
+          <v-col class="d-flex sm-pt-2 sm-pl-0 md-pr-0 justify-end">
             <v-btn color="success" dark class="elevation-0 mr-2" v-if="assignment && assignment.assignmentSubmitStatus !== 'publish'" @click="doUiAction('saveArticleAssignment', false)">保存</v-btn>
             <v-btn color="error" dark class="elevation-0 mr-2" v-if="assignment && assignment.assignmentSubmitStatus !== 'publish'" @click="doUiAction('saveArticleAssignment', 'publish')">提交</v-btn>
             <div v-else>
@@ -178,7 +178,7 @@
 
         this.assignment = result.data.appData.resultData.rows[0];
       },
-      
+
       buildassignmentStandardAnswer() {
         const assignmentStandardAnswer = JSON.parse(this.assignment.assignmentStandardAnswer || '[]');
         _.forEach(assignmentStandardAnswer, (item, index) => {
@@ -289,13 +289,16 @@
     .sm-hide {
       display: none;
     }
+
     .sm-pt-2 {
       padding-top: 10px;
     }
+
     .sm-pl-0 {
       padding-left: 0;
     }
   }
+
   @media (min-width: 600px) {
     .md-pr-0 {
       padding-right: 0;
