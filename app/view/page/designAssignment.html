@@ -139,7 +139,7 @@
             await this.buildAssignmentItemFile(uiActionData);
             await this.createSaveActionData(uiActionData);
             await this.saveArticleAssignmentRequest(uiActionData);
-            await this.syncassignmentSubmitStatus(uiActionData);
+            await this.resetAssignmentSubmitStatus(uiActionData);
             break;
           case 'updateFormItemList':
             await this.updateFormItemList(uiActionData);
@@ -245,7 +245,7 @@
         const msg = assignmentSubmitStatus === 'publish' ? '提交成功' : assignmentSubmitStatus === 'cancel' ? "撤销成功" : "保存成功";
         window.vtoast.success(msg);
       },
-      syncassignmentSubmitStatus(assignmentSubmitStatus) {
+      resetAssignmentSubmitStatus(assignmentSubmitStatus) {
         if (assignmentSubmitStatus) {
           this.assignment.assignmentSubmitStatus = assignmentSubmitStatus === 'publish' ? assignmentSubmitStatus : null;
         }
