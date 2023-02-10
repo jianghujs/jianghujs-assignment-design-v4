@@ -180,7 +180,7 @@
                     <v-card>
                       <v-card-text class="pa-0">
                         <v-btn v-for="(type, i) in ['删除']" :key="i"
-                          @click="editFillBlankLine(selectCanvaId, index, type)" text color="primary"
+                          @click="editFillBlankLine(selectedFormItemId, index, type)" text color="primary"
                           :disabled="type === '粘贴'">
                           {{type}}
                         </v-btn>
