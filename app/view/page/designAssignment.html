@@ -217,11 +217,19 @@
       createSaveActionData(assignmentSubmitStatus) {
         this.saveActionData = {};
         const articleAssignment = _.cloneDeep(this.assignmentStandardAnswer);
+        let assignmentFullMarks = 0;
         articleAssignment.forEach(formItem => {
           formItem.answerData = {};
+          assignmentFullMarks += Number(formItem.component.score || 0)
+          if (formItem.component.type == 'questionGroup') {
+            formItem.component.itemList.forEach(childFormItem=> {
+              assignmentFullMarks += Number(childFormItem.component.score || 0)
+            })
+          }
         })
         this.saveActionData = {
           assignmentStandardAnswer: JSON.stringify(this.assignmentStandardAnswer),
+          assignmentFullMarks
         };
         if (assignmentSubmitStatus === 'publish') {
           this.saveActionData.assignmentSubmitStatus = assignmentSubmitStatus;
@@ -229,6 +237,9 @@
         if (assignmentSubmitStatus === 'cancel') {
           this.saveActionData.assignmentSubmitStatus = null;
         }
+      },
+      countAssignmentFullMarks() {
+
       },
       async saveArticleAssignmentRequest(assignmentSubmitStatus) {
         window.vtoast.loading("保存");
