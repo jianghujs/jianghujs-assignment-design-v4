@@ -1,67 +1,57 @@
 'use strict';
 
 const path = require('path');
-const assert = require('assert');
 
 const { middleware, middlewareMatch } = require('@jianghujs/jianghu/config/middlewareConfig');
 
-const eggJianghuPathTemp = require.resolve('@jianghujs/jianghu');
-const eggJianghuPath = path.join(eggJianghuPathTemp, '../');
+const eggJianghuDirResolve = require.resolve('@jianghujs/jianghu');
+const eggJianghuDir = path.join(eggJianghuDirResolve, '../');
 
 module.exports = appInfo => {
-  assert(appInfo);
 
   const appId = 'jianghujs-assignment-design';
-  const uploadDir = path.join(appInfo.baseDir, 'upload');
-  const downloadBasePath = `/${appId}/upload`;
 
   return {
     appId,
     appTitle: '作业设计端',
-    appLogo: `${appId}/public/img/logo.png`,
-    appType: 'single',
-    appDirectoryLink: '/',
+    appLogo: `${appId}/public/img/logo.svg`,
+
     indexPage: `/${appId}/page/assignmentManagement`,
     loginPage: `/${appId}/page/login`,
     helpPage: `/${appId}/page/help`,
-    uploadDir,
-    downloadBasePath,
+
+    uploadDir: path.join(appInfo.baseDir, 'upload'),
+    downloadBasePath: `/${appId}/upload`,
+
     primaryColor: "#4caf50",
     primaryColorA80: "#EEF7EE",
+
     static: {
-      maxAge: 0,
-      buffer: false,
+      dynamic: true,
       preload: false,
-      maxFiles: 0,
+      maxAge: 31536000,
+      buffer: true,
       dir: [
         { prefix: `/${appId}/public/`, dir: path.join(appInfo.baseDir, 'app/public') },
-        { prefix: `/${appId}/public/`, dir: path.join(eggJianghuPath, 'app/public') },
-        { prefix: `/${appId}/upload/`, dir: uploadDir },
+        { prefix: `/${appId}/public/`, dir: path.join(eggJianghuDir, 'app/public') },
       ],
     },
+    jianghuConfig: {
+      enableUploadStaticFileCache: true,
+      enableUploadStaticFileAuthorization: false,
+    },
+
     view: {
       defaultViewEngine: 'nunjucks',
       mapping: { '.html': 'nunjucks' },
       root: [
         path.join(appInfo.baseDir, 'app/view'),
-        path.join(eggJianghuPath, 'app/view'),
+        path.join(eggJianghuDir, 'app/view'),
       ].join(','),
     },
+
     middleware,
     ...middlewareMatch,
-    pageDocPackage: {
-      match(ctx) { return false; },
-    },
-    pageDocUserInfo: {
-      match(ctx) {
-        // url 格式符合 /appId/page/pageId 或 /appId/pageDoc/pageId.md
-        return (ctx.request.method === 'GET' || ctx.request.method === 'HEAD')
-          && ctx.request.path.startsWith(`/${ctx.app.config.appId}/pageDoc`);
-      },
-    },
-    pageDocAuthorization: {
-      match(ctx) { return false; },
-    },
   };
 
 };
