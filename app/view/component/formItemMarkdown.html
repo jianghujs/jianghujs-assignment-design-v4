@@ -5,62 +5,60 @@
 </template>
 
 <script>
-  Vue.component("form-item-markdown", {
-    template: '#form-item-markdown',
-    name: 'form-item-markdown',
-    props: {
-      formItemId: String,
-      value: String,
-      toolbarIcons: {
-        type: Array || Function || String,
-        default: ()=> [
-          "undo", "redo", "|",
-          "h1", "h2", "h3", "h4", "h5", "bold", "del", "italic", "quote",
-          "list-ul", "list-ol", "hr", "link",
-        ]
-      }
-      
-    },
-    data: () => ({
-      
-    }),
-    computed: {
-      
-    },
-    watch: {
-      formItemId() {
-        this.initEditorMd(this, `editorMdContainer-${this.formItemId}`, this.value, () => {});
-      }
-    },
-    created() {
-      this.initEditorMd(this, `editorMdContainer-${this.formItemId}`, this.value, () => {});
-    },
-    methods: {
-      initEditorMd(that, id, content, onImageUpload) {
-        that.$nextTick(() => {
-          if (document.getElementById(id)) {
-            document.getElementById(id).innerHTML = `<textarea style=\"display:none;\">${content || ""}</textarea>`;
-            that.editor = editormd(id, {
-              // width  : "100%",
-              // height : "100%",
-              watch: false,
-              autoFocus: false,
-              saveHTMLToTextarea: false,    // 保存 HTML 到 Textarea
-              htmlDecode: "style,script,iframe|on*",
-              path: '/<$ ctx.app.config.appId $>/public/plugins/editor.md/lib/',
-              toolbarIcons: that.toolbarIcons,
-              onchange: function () {
+Vue.component("form-item-markdown", {
+  template: '#form-item-markdown',
+  name: 'form-item-markdown',
+  props: {
+    formItemId: String,
+    value: String,
+    toolbarIcons: {
+      type: Array || Function || String,
+      default: () => [
+        "undo", "redo", "|",
+        "h1", "h2", "h3", "h4", "h5", "bold", "del", "italic", "quote",
+        "list-ul", "list-ol", "hr", "link",
+      ]
+    }
 
-                that.$emit('change', this.getMarkdown())
-                // change(this.getMarkdown(), this.getPreviewedHTML2());
-              },
-            });
-            
-          }
-        })
-      },
+  },
+  data: () => ({}),
+  computed: {},
+  watch: {
+    formItemId() {
+      this.initEditorMd(this, `editorMdContainer-${this.formItemId}`, this.value, () => {
+      });
+    }
+  },
+  created() {
+    this.initEditorMd(this, `editorMdContainer-${this.formItemId}`, this.value, () => {
+    });
+  },
+  methods: {
+    initEditorMd(that, id, content, onImageUpload) {
+      that.$nextTick(() => {
+        if (document.getElementById(id)) {
+          document.getElementById(id).innerHTML = `<textarea style=\"display:none;\">${content || ""}</textarea>`;
+          that.editor = editormd(id, {
+            // width  : "100%",
+            // height : "100%",
+            watch: false,
+            autoFocus: false,
+            saveHTMLToTextarea: false,    // 保存 HTML 到 Textarea
+            htmlDecode: "style,script,iframe|on*",
+            path: '/<$ ctx.app.config.appId $>/public/plugin/editor.md/lib/',
+            toolbarIcons: that.toolbarIcons,
+            onchange: function () {
+
+              that.$emit('change', this.getMarkdown())
+              // change(this.getMarkdown(), this.getPreviewedHTML2());
+            },
+          });
+
+        }
+      })
     },
-  })
+  },
+})
 </script>
 
 <style scoped>

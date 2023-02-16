@@ -1,17 +1,22 @@
 <template id="form-item-list-generator">
-  <v-card color="#f5f8fa" style="max-height: 100%"
-    :class="{'d-flex': !isMobile, 'form-item-list-generator-content': !isMobile}">
-
-    <!-- 左侧组件选择列表 >>>>>>>>>>>>> -->
-    <v-card style="max-height: 100%; overflow-y: auto;" :style="{'width': isMobile ? '100%' : '300px'}"
-      :class="{'pa-4': !isMobile, 'pa-2': isMobile, 'mr-6': !isMobile}">
+  <v-card color="#F2F2F2" class="elevation-0" style="max-height: 100%" :class="{'d-flex': !isMobile, 'form-item-list-generator-content': !isMobile}">
+    <!-- 左侧 组件选择列表 >>>>>>>>>>>>> -->
+    <v-card style="max-height: 100%; overflow-y: auto;" :style="{'width': isMobile ? '100%' : '300px'}" :class="{'pa-4': !isMobile, 'pa-2': isMobile, 'mr-6': !isMobile}">
       <div class="left-component-item-title" :style="{'white-space': 'nowrap'}">
         <v-icon>mdi-puzzle-outline</v-icon>
         <span style="transform: translateY(2px); display: inline-block;">组件</span>
       </div>
-      <draggable :group="{ name: 'componentGroup', pull: 'clone', put: false }" :list="componentList"
-        draggable=".left-component-item" :clone="cloneComponent" @end="leftComponentDraggableOnEnd">
-        <div class="left-component-item" v-for="(component, index) in componentList" :key="index"
+      <!--左侧 可拖动按钮列表 >>>>>>>>>>>>> -->
+      <draggable
+        :group="{ name: 'componentGroup', pull: 'clone', put: false }"
+        :list="componentList"
+        draggable=".left-component-item"
+        :clone="cloneComponent"
+        @end="leftComponentDragEnd">
+        <div
+          class="left-component-item"
+          v-for="(component, index) in componentList"
+          :key="index"
           @click="addFormItem(component)">
           <div class="left-component-item-body">
             <v-icon small class="mr-1">{{ component.icon }}</v-icon>
@@ -19,576 +24,589 @@
           </div>
         </div>
       </draggable>
+      <!--<<<<<<<<<<<<< 左侧 可拖动按钮列表 -->
     </v-card>
-    <!-- <<<<<<<<<<<<< 左侧组件选择列表 -->
+    <!-- <<<<<<<<<<<<< 左侧 组件选择列表 -->
 
-    <!-- 组件编辑区 >>>>>>>>>>>>> -->
+    <!-- 中间 组件编辑区 >>>>>>>>>>>>> -->
     <v-card class="formItemList pt-5 px-4" style="position: relative;max-height: 100%; overflow-y: auto;">
+      <!-- 中间 组件编辑区 顶部工具栏 >>>>>>>>>>>>> -->
       <div class="d-flex justify-end">
         <v-btn small color="error" @click.stop="emptyCanva" class="mr-2">
           <span>重置</span>
         </v-btn>
-        </v-btn>
       </div>
-      <form-item-list-content :selected-form-item="selectedFormItem" :form-item-list="formItemList"
+      <!-- <<<<<<<<<<<<< 中间 组件编辑区 顶部工具栏 -->
+      <!-- 中间 组件编辑区 题目列表 >>>>>>>>>>>>> -->
+      <form-item-list-content
+        :selected-form-item="selectedFormItem"
+        :form-item-list="formItemList"
         :selected-form-item-id="selectedFormItemId" />
+      <!-- <<<<<<<<<<<<< 中间 组件编辑区 题目列表 -->
     </v-card>
-    <!-- <<<<<<<<<<<<< 组件编辑区 -->
+    <!-- <<<<<<<<<<<<< 中间 组件编辑区 -->
 
-    <!-- 组件属性编辑区 >>>>>>>>>>>>> -->
-    <v-card style="max-height: 100%; overflow-y: auto;" :style="{'width': isMobile ? 'auto' : '300px'}" class="pa-4"
-      :class="{'ml-6': !isMobile}">
+    <!-- 右侧 组件属性编辑区 >>>>>>>>>>>>> -->
+    <v-card style="max-height: 100%; overflow-y: auto;" :style="{'width': isMobile ? 'auto' : '300px'}" class="pa-4" :class="{'ml-6': !isMobile}">
       <div class="property-title">
         <v-icon>mdi-application-edit-outline</v-icon>
         <span style="transform: translateY(2px); display: inline-block;">组件属性</span>
       </div>
-      <div v-if="selectedFormItemId && selectedFormItem">
-        <v-card class="mt-5" flat v-if="['singleSelect', 'multipleSelect'].includes(selectedFormItem.component.type)">
-          <v-row no-gutters>
-            <v-col cols="12">
-              <v-row no-gutters>
-                <span class="inputLabel">附件上传配置</span>
-                <v-col cols="12">
-                  <v-checkbox class="mt-0" v-model="selectedFormItem.component.uploadConfig" label="图片" value="img"
-                    hide-details style="display: inline-block; margin: 0 20px"></v-checkbox>
-                  <v-checkbox class="mt-0" v-model="selectedFormItem.component.uploadConfig" label="音频" value="audio"
-                    hide-details style="display: inline-block; margin-right: 20px"></v-checkbox>
-                  <v-checkbox class="mt-0" v-model="selectedFormItem.component.uploadConfig" label="视频" value="video"
-                    hide-details style="display: inline-block;"></v-checkbox>
-                </v-col>
-              </v-row>
-            </v-col>
-            <v-col cols="12">
-              <span class="inputLabel">参考分数</span>
-              <v-textarea class="cus-v-input" dense filled single-line color="success"
-                v-model="selectedFormItem.component.score" auto-grow :rows="1">
-              </v-textarea>
-              <span class="inputLabel">题目</span>
-              <v-textarea class="cus-v-input" dense filled single-line color="success"
-                v-model="selectedFormItem.component.statement" auto-grow :rows="1">
-              </v-textarea>
-              <div style="display: flex; flex-direction: row;justify-content: space-between; align-items: center;">
-                <v-subheader class="pa-0">选项列表</v-subheader>
-                <v-btn icon @click.stop="propertyAddOption(selectedFormItem.component.selectOptionList.length)">
-                  <v-icon dark color="grey lighten-1">mdi-plus-box</v-icon>
-                </v-btn>
-              </div>
-              <v-list class="propertyList" dense style="max-height: 300px; overflow-y: auto;">
-                <template v-for="(optionText, i) in selectedFormItem.component.selectOptionList">
-                  <v-list-item class="pa-0" :data-index="selectedFormItemId" :key="selectedFormItemId + '-' + i">
-                    <v-list-item-content>
-                      <v-textarea class="cus-v-input" dense :key="selectedFormItemId + '-' + i" filled
-                        :prefix="optionKey[i]+': '" single-line color="success"
-                        v-model="selectedFormItem.component.selectOptionList[i]" auto-grow :rows="1"
-                        @input="resetAnswer(selectedFormItemId, selectedFormItem.component.type)">
-                      </v-textarea>
-                    </v-list-item-content>
-                    <v-list-item-action class="ml-2">
-                      <v-btn icon @click.stop="propertyDeleteOption(i)">
-                        <v-icon color="grey lighten-1" dark>mdi-delete</v-icon>
-                      </v-btn>
-                    </v-list-item-action>
-                  </v-list-item>
-                </template>
-              </v-list>
-            </v-col>
-          </v-row>
-        </v-card>
-        <v-card class="mt-5" flat v-if="['textarea', 'markdown'].includes(selectedFormItem.component.type)">
-          <v-row no-gutters>
-            <span class="inputLabel">附件上传配置</span>
-            <v-col cols="12">
-              <v-checkbox class="mt-0" v-model="selectedFormItem.component.uploadConfig" label="图片" value="img"
-                hide-details style="display: inline-block; margin: 0 20px"></v-checkbox>
-              <v-checkbox class="mt-0" v-model="selectedFormItem.component.uploadConfig" label="音频" value="audio"
-                hide-details style="display: inline-block; margin-right: 20px"></v-checkbox>
-              <v-checkbox class="mt-0" v-model="selectedFormItem.component.uploadConfig" label="视频" value="video"
-                hide-details style="display: inline-block;"></v-checkbox>
-            </v-col>
-          </v-row>
-          <span class="inputLabel">参考分数</span>
-          <v-textarea class="cus-v-input" dense filled single-line color="success"
-            v-model="selectedFormItem.component.score" auto-grow :rows="1">
+      <template v-if="selectedFormItemId && selectedFormItem" class="d-flex flex-column flex-fill">
+        <template v-if="['singleSelect', 'multipleSelect', 'textarea', 'markdown', 'fillBlank'].includes(selectedFormItem.component.type)">
+          <!--附件上传配置-->
+          <span class="jh-input-label mt-3">附件上传配置</span>
+          <div>
+            <v-checkbox
+              class="mt-0 ml-0" label="图片" value="img" hide-details
+              v-model="selectedFormItem.component.uploadConfig"
+              style="display: inline-block; margin: 0 20px"></v-checkbox>
+            <v-checkbox
+              class="mt-0" label="音频" value="audio" hide-details
+              v-model="selectedFormItem.component.uploadConfig"
+              style="display: inline-block; margin-right: 20px"></v-checkbox>
+            <v-checkbox
+              class="mt-0" label="视频" value="video" hide-details
+              v-model="selectedFormItem.component.uploadConfig"
+              style="display: inline-block;"></v-checkbox>
+          </div>
+          <!--参考分数-->
+          <span class="jh-input-label mt-3">参考分数</span>
+          <div>
+            <v-textarea class="jh-v-input" dense filled single-line color="success" v-model="selectedFormItem.component.score" auto-grow :rows="1">
+            </v-textarea>
+          </div>
+        </template>
+        <span class="jh-input-label mt-3">题目</span>
+        <!--其他题的题目-->
+        <div v-if="['singleSelect', 'multipleSelect', 'textarea', 'markdown', 'displayText', 'questionGroup'].includes(selectedFormItem.component.type)">
+          <v-textarea class="jh-v-input" dense filled single-line color="success" v-model="selectedFormItem.component.statement" auto-grow :rows="1">
           </v-textarea>
-          <span class="inputLabel">题目</span>
-          <v-textarea class="cus-v-input" dense filled single-line label="多行文本" auto-grow :rows="1"
-            v-model="selectedFormItem.component.statement"></v-textarea>
-
-
-        </v-card>
-        <v-card class="mt-5" flat v-if="selectedFormItem.component.type === 'fillBlank'">
-          <v-row no-gutters>
-            <span class="inputLabel">附件上传配置</span>
-            <v-col cols="12">
-              <v-checkbox class="mt-0" v-model="selectedFormItem.component.uploadConfig" label="图片" value="img"
-                hide-details style="display: inline-block; margin: 0 20px"></v-checkbox>
-              <v-checkbox class="mt-0" v-model="selectedFormItem.component.uploadConfig" label="音频" value="audio"
-                hide-details style="display: inline-block; margin-right: 20px"></v-checkbox>
-              <v-checkbox class="mt-0" v-model="selectedFormItem.component.uploadConfig" label="视频" value="video"
-                hide-details style="display: inline-block;"></v-checkbox>
-            </v-col>
-          </v-row>
-          <span class="inputLabel">参考分数</span>
-          <v-textarea class="cus-v-input" dense filled single-line color="success"
-            v-model="selectedFormItem.component.score" auto-grow :rows="1">
-          </v-textarea>
-          <span class="inputLabel">题目</span>
+        </div>
+        <!--填空题的项目 >>>>>>>>>>-->
+        <div v-if="['fillBlank'].includes(selectedFormItem.component.type)">
           <template v-for="(item, index) in selectedFormItem.component.statement">
-            <v-textarea v-model="item.value" hide-details class="cus-v-input mb-1" dense filled single-line
-              color="success" auto-grow :rows="3" @input="nodeLoadingStatus = 'input'"
+            <v-textarea
+              v-model="item.value" hide-details class="jh-v-input mb-1 jh-fill-blank-textarea" dense filled single-line
+              color="success" auto-grow
+              :rows="4"
+              @input="nodeLoadingStatus = 'input'"
               :placeholder="item.type === 'text' ? '题目' : '填空'">
+              <!--项目的类型显示【题目文本、填空】-->
+              <template v-slot:append>
+                <v-chip x-small dark class="pa-1" :color="item.type === 'text' ? 'grey' : 'green'">{{item.type === 'text' ? '题目' : '填空'}}</v-chip>
+              </template>
+              <!--项目的操作按钮-->
               <template v-slot:append-outer>
-                <div class="d-flex flex-column">
+                <div class="d-flex flex-column align-end">
+                  <!--切换项目的类型【题目文本、填空】-->
                   <v-menu style="top: -12px" offset-y>
                     <template v-slot:activator="{ on, attrs }">
-                      <v-chip class="px-1" small v-bind="attrs" v-on="on"
-                        :color="item.type === 'text' ? 'secondary' : 'success'">
-                        {{ item.type === 'text' ? '题目' : '填空' }}
-                      </v-chip>
+                      <v-btn small v-bind="attrs" v-on="on" icon color="grey" dark>
+                        <v-icon>mdi-sync-circle</v-icon>
+                      </v-btn>
                     </template>
+                    <!--切换菜单-->
                     <v-card>
                       <v-card-text class="pa-0">
-                        <v-btn v-for="(ty, key, i) in constantCollection.fillBlankType" :key="i"
+                        <v-btn
+                          v-for="(_, key, i) in constantObj.fillBlankType" :key="i"
                           @click="selectedFormItem.component.statement[index].type = key" text color="primary">
-                          {{ty}}
+                          切换为{{type}}
                         </v-btn>
                       </v-card-text>
                     </v-card>
                   </v-menu>
+                  <!--删除该项目-->
+                  <v-btn small @click="editFillBlankLine({index: index, type: '删除'})" icon color="grey" dark>
+                    <v-icon>mdi-delete-circle</v-icon>
+                  </v-btn>
+                  <!--下方插入项目【题目文本、填空】-->
                   <v-menu style="top: -12px" offset-y>
                     <template v-slot:activator="{ on, attrs }">
-                      <v-btn small v-bind="attrs" v-on="on" icon color="black" dark>
-                        <v-icon>mdi-plus</v-icon>
+                      <v-btn small v-bind="attrs" v-on="on" icon color="grey" dark>
+                        <v-icon>mdi-plus-circle</v-icon>
                       </v-btn>
                     </template>
+                    <!--题目类型菜单-->
                     <v-card>
                       <v-card-text class="pa-0">
-                        <v-btn v-for="(type, key, i) in constantCollection.fillBlankType" :key="i"
+                        <v-btn
+                          v-for="(type, key, i) in constantObj.fillBlankType" :key="i"
                           @click="addFillBlankLine(i, index, key)" text color="primary">
-                          {{type}}
-                        </v-btn>
-                      </v-card-text>
-                    </v-card>
-                  </v-menu>
-                  <v-menu style="top: -12px" offset-y>
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-btn small v-bind="attrs" v-on="on" icon color="black" dark>
-                        <v-icon>mdi-dots-vertical</v-icon>
-                      </v-btn>
-                    </template>
-
-                    <v-card>
-                      <v-card-text class="pa-0">
-                        <v-btn v-for="(type, i) in ['删除']" :key="i"
-                          @click="editFillBlankLine(selectedFormItemId, index, type)" text color="primary"
-                          :disabled="type === '粘贴'">
-                          {{type}}
+                          插入{{type}}
                         </v-btn>
                       </v-card-text>
                     </v-card>
                   </v-menu>
                 </div>
-
               </template>
             </v-textarea>
           </template>
-
-        </v-card>
-        <v-card class="mt-5" flat v-if="selectedFormItem.component.type === 'input'">
-          <v-textarea class="cus-v-input" dense filled single-line label="单行文本" auto-grow :rows="1"
-            v-model="selectedFormItem.component.statement"></v-textarea>
-        </v-card>
-        <v-card class="mt-5" flat v-if="['displayText', 'questionGroup'].includes(selectedFormItem.component.type)">
-          <span class="inputLabel">题目</span>
-
-          <v-textarea class="cus-v-input" dense filled single-line label="多行文本" auto-grow :rows="1"
-            v-model="selectedFormItem.component.statement"></v-textarea>
-
-
-        </v-card>
-        <v-card class="mt-5" flat
-          v-if="['questionGroup', 'singleSelect', 'multipleSelect', 'fillBlank', 'textarea'].includes(selectedFormItem.component.type)">
-          <span class="inputLabel">内容块</span>
-          <form-item-markdown :form-item-id="selectedFormItem.id" :value="selectedFormItem.component.markdownContent"
-            @change="selectedFormItem.component.markdownContent=$event" :toolbar-icons="() => {
-            return ['undo', 'redo']
-          }" />
-        </v-card>
-      </div>
+        </div>
+        <!-- <<<<<<<<<< 填空题的项目 -->
+        <!--单选、多选的选项 >>>>>>>>>>-->
+        <template v-if="['singleSelect', 'multipleSelect'].includes(selectedFormItem.component.type)">
+          <v-row class="ma-0" style="max-height: 50px">
+            <span class="jh-input-label mt-3">选项列表</span>
+            <v-spacer></v-spacer>
+            <v-btn class="mt-3" small icon @click.stop="addOptionForProperty(selectedFormItem.component.selectOptionList.length)">
+              <v-icon dark color="grey lighten-1">mdi-plus-box</v-icon>
+            </v-btn>
+          </v-row>
+          <!--选项列表-->
+          <v-list class="propertyList py-0" dense style="max-height: 300px; overflow-y: auto; overflow-x: hidden">
+            <template v-for="(optionText, i) in selectedFormItem.component.selectOptionList">
+              <v-list-item class="pa-0" :data-index="selectedFormItemId" :key="selectedFormItemId + '-' + i">
+                <v-list-item-content class="pa-0">
+                  <v-text-field
+                    class="jh-v-input" dense filled single-line color="success" auto-grow
+                    :key="selectedFormItemId + '-' + i"
+                    :prefix="optionKey[i]+': '"
+                    v-model="selectedFormItem.component.selectOptionList[i]"
+                    @input="resetAnswer(selectedFormItemId, selectedFormItem.component.type)">
+                  </v-text-field>
+                </v-list-item-content>
+                <!--删除按钮-->
+                <v-list-item-action class="ma-0">
+                  <v-btn icon small @click.stop="deletePropertyOption(i)">
+                    <v-icon color="grey lighten-1" dark>mdi-delete</v-icon>
+                  </v-btn>
+                </v-list-item-action>
+              </v-list-item>
+            </template>
+          </v-list>
+        </template>
+        <!--<<<<<<<<<< 单选、多选的选项-->
+        <!--内容块[markdown格式] >>>>>>>>>>-->
+        <template v-if="['questionGroup', 'singleSelect', 'multipleSelect', 'fillBlank', 'textarea'].includes(selectedFormItem.component.type)">
+          <span class="jh-input-label mt-3">内容块</span>
+          <div style="height: 400px">
+            <form-item-markdown
+              :form-item-id="selectedFormItem.id"
+              :value="selectedFormItem.component.markdownContent"
+              @change="selectedFormItem.component.markdownContent=$event"
+              :toolbar-icons="['undo', 'redo']" />
+          </div>
+        </template>
+        <!--<<<<<<<<<< 内容块[markdown格式]-->
+      </template>
     </v-card>
-    <!-- <<<<<<<<<<<<< 组件属性编辑区 -->
+    <!-- <<<<<<<<<<<<< 右侧 组件属性编辑区 -->
   </v-card>
 </template>
 
 <script>
-  // 1. v-main 滚动条
-  // 2. v-navigation-drawer 小屏幕 不要关闭
-  Vue.component("form-item-list-generator", {
-    template: '#form-item-list-generator',
-    vuetify: new Vuetify(),
-    name: 'form-item-list-generator',
-    props: {
-      formItemList: {
-        type: Array,
-        default: () => []
-      },
-      selectedFormItemId: {
-        type: String,
-        default: ""
-      },
+// 1. v-main 滚动条
+// 2. v-navigation-drawer 小屏幕 不要关闭
+Vue.component("form-item-list-generator", {
+  template: '#form-item-list-generator',
+  vuetify: new Vuetify(),
+  name: 'form-item-list-generator',
+  props: {
+    formItemList: {
+      type: Array,
+      default: () => []
     },
-    inject: ["formItemSelect", "uuid", "optionKey"],
-    data: () => ({
-      constantCollection: {
-        // text - 题目 input - 填空
-        fillBlankType: {
-          text: '题目',
-          input: '填空'
-        }
-      },
-      componentList: [
-        { typeDesc: '多行文本', type: 'textarea', statement: '多行文本', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea' },
-        { typeDesc: 'Markdown', type: 'markdown', statement: 'Markdown', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea' },
-        {
-          typeDesc: '单选',
-          type: 'singleSelect',
-          statement: '单选',
-          markdownContent: '',
-          selectOptionList: ['选项1', '选项2'],
-          uploadConfig: [],
-          answer: '',
-          score: '',
-          icon: 'mdi-checkbox-marked-circle'
-        },
-        {
-          typeDesc: '多选',
-          type: 'multipleSelect',
-          statement: '多选',
-          markdownContent: '',
-          selectOptionList: ['选项1', '选项2'],
-          uploadConfig: [],
-          answer: [],
-          score: '',
-          icon: 'mdi-checkbox-marked'
-        },
-        {
-          typeDesc: '填空题',
-          type: 'fillBlank',
-          statement: [
-            { id: 1, type: 'text', value: '文本' },
-            { id: 2, type: 'input', value: '填空', width: '100px' },
-            { id: 3, type: 'text', value: '文本' },
-          ],
-          markdownContent: '',
-          uploadConfig: [],
-          answer: {
-            2: '明月'
-          },
-          score: '',
-          icon: 'mdi-text-recognition'
-        },
-        { typeDesc: '纯标题文本', type: 'displayText', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea' },
-        { typeDesc: '组', type: 'questionGroup', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea' },
-      ],
-      tempComponent: null,
-    }),
-    computed: {
-      isMobile() { return window.innerWidth < 600 },
-
-      // 当前选中的作业
-      selectedFormItem() {
-        let filteredSelectedFormItem = null
-        try {
-          this.formItemList.forEach(item => {
-            if (item.id === this.selectedFormItemId) {
-              filteredSelectedFormItem = item
-              throw Error();
-            }
-            const itemList = item.component.itemList
-            if (Array.isArray(itemList)) {
-              itemList.forEach(item2 => {
-                if (item2.id === this.selectedFormItemId) {
-                  filteredSelectedFormItem = item2
-                  throw Error();
-                }
-              })
-            }
-          })
-        } catch (e) {
-        }
-        return filteredSelectedFormItem
+    selectedFormItemId: {
+      type: String,
+      default: ""
+    },
+  },
+  inject: ["formItemSelect", "uuid", "optionKey"],
+  data: () => ({
+    constantObj: {
+      // text - 题目 input - 填空
+      fillBlankType: {
+        text: '题目',
+        input: '填空'
       }
     },
-    methods: {
-      // ---------- 组件编辑区操作 >>>>>>>>>>>>> ----------
-      // 重置
-      emptyCanva() {
-        this.formItemList = [];
+    componentList: [
+      {typeDesc: '多行文本', type: 'textarea', statement: '多行文本', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea'},
+      {typeDesc: 'Markdown', type: 'markdown', statement: 'Markdown', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea'},
+      {
+        typeDesc: '单选',
+        type: 'singleSelect',
+        statement: '单选',
+        markdownContent: '',
+        selectOptionList: ['选项1', '选项2'],
+        uploadConfig: [],
+        answer: '',
+        score: '',
+        icon: 'mdi-checkbox-marked-circle'
       },
-      async editFillBlankLine(formIndex, index, type) {
-        switch (type) {
-          case '剪切':
-          case '复制':
+      {
+        typeDesc: '多选',
+        type: 'multipleSelect',
+        statement: '多选',
+        markdownContent: '',
+        selectOptionList: ['选项1', '选项2'],
+        uploadConfig: [],
+        answer: [],
+        score: '',
+        icon: 'mdi-checkbox-marked'
+      },
+      {
+        typeDesc: '填空题',
+        type: 'fillBlank',
+        statement: [
+          {id: 1, type: 'text', value: '文本'},
+          {id: 2, type: 'input', value: '填空', width: '100px'},
+          {id: 3, type: 'text', value: '文本'},
+        ],
+        markdownContent: '',
+        uploadConfig: [],
+        answer: {
+          2: '明月'
+        },
+        score: '',
+        icon: 'mdi-text-recognition'
+      },
+      {typeDesc: '纯标题文本', type: 'displayText', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea'},
+      {typeDesc: '组', type: 'questionGroup', markdownContent: '', answer: '', score: '', uploadConfig: [], icon: 'mdi-form-textarea'},
+    ],
+    tempComponent: null,
+  }),
+  computed: {
+    isMobile() {
+      return window.innerWidth < 600
+    },
+
+    // 当前选中的题目
+    selectedFormItem() {
+      let findItem = null
+      this.formItemList.some(formItem => {
+        if (formItem.id === this.selectedFormItemId) {
+          findItem = formItem
+          return true;
+        }
+        const groupItemList = formItem.component.itemList
+        if (Array.isArray(groupItemList)) {
+          return groupItemList.some(groupItem => {
+            if (groupItem.id === this.selectedFormItemId) {
+              findItem = groupItem
+              return true;
+            }
+          })
+        }
+        return false;
+      })
+      return findItem;
+    }
+  },
+  methods: {
+    // ---------- 组件编辑区操作 >>>>>>>>>>>>> ----------
+    // 重置画布
+    emptyCanva() {
+      this.formItemList = [];
+    },
+    // 编辑填空题
+    async editFillBlankLine({index, type}) {
+      switch (type) {
+        case '剪切':
+        case '复制':
+          this.lineHandler = {
+            type: type === '剪切' ? 'cut' : 'copy',
+            line: this.selectedFormItem.component.statement[index]
+          }
+          break;
+        case '粘贴':
+          // 粘贴到当前题目的下一个位置
+          this.selectedFormItem.component.statement.splice(index + 1, 0, {
+            ...this.lineHandler.line,
+            id: Date.now()
+          })
+          if (this.lineHandler.type === 'cut') {
+            const statementList = _.cloneDeep(this.selectedFormItem.component.statement)
+            this.selectedFormItem.component.statement = statementList.filter(statementItem => {
+              return statementItem.id === this.lineHandler.line.id;
+            });
             this.lineHandler = {
-              type: type === '剪切' ? 'cut' : 'copy',
-              line: this.selectedFormItem.component.statement[index]
+              type: '',
+              line: {}
             }
-            break;
-          case '粘贴':
-            this.selectedFormItem.component.statement.splice(index + 1, 0, {
-              ...this.lineHandler.line, id: Date.now()
-            })
-            if (this.lineHandler.type === 'cut') {
-              const i = this.selectedFormItem.component.statement.findIndex(e => e.id === this.lineHandler.line.id);
-              this.selectedFormItem.component.statement.splice(i, 1);
-              this.lineHandler = {
-                type: '',
-                line: {}
-              }
-            }
-            break;
-          case '删除':
-            this.selectedFormItem.component.statement.splice(index, 1);
-            break;
-        }
-      },
-      // ---------- <<<<<<<<<<<<< 组件编辑区操作 ----------
+          }
+          break;
+        case '删除':
+          this.selectedFormItem.component.statement.splice(index, 1);
+          break;
+      }
+    },
+    // ---------- <<<<<<<<<<<<< 组件编辑区操作 ----------
 
-      // ---------- 组件列表选择区操作 >>>>>>>>>>>>> ----------
-      cloneComponent(component) {
-        this.tempComponent = component;
-      },
-      leftComponentDraggableOnEnd(event) {
-        console.log('leftComponentDraggableOnEnd event:', event)
-        if (event.from !== event.to) {
-          const newIndex = event.newIndex;
-          this.addFormItem(this.tempComponent, newIndex, event);
-        }
-        this.tempComponent = null;
-      },
-      addFormItem(_component, targetIndex, event) {
-        const component = {
-          ..._component,
-          answer: Array.isArray(_component.answer) ? [..._component.answer] : (typeof _component.answer === 'string') ? _component.answer : { ..._component.answer },
-          uploadConfig: [..._component.uploadConfig],
-          itemList: []
-        };
-        if (_component.selectOptionList) {
-          component['selectOptionList'] = [..._component.selectOptionList];
-        }
-
-        const { type } = component;
-        const formItem = {
-          id: `${type}_${this.uuid(8)}`,
-          component
-        };
-
-        if (!this.formItemList) {
-          this.formItemList = [];
-        }
-
-
-        if (event) {
-          if (event.to.className.includes('questionGroup') && !formItem.id.includes('questionGroup')) {
-            // 添加到组件到分组
-            let newFormItemList = [...this.formItemList]
-            newFormItemList = newFormItemList.map(item => {
-              if (event.to.className.includes(item.id)) {
+    // ---------- 组件列表选择区操作 >>>>>>>>>>>>> ----------
+    // 克隆题目
+    cloneComponent(component) {
+      this.tempComponent = component;
+    },
+    // 左侧题目类型拖动结束
+    leftComponentDragEnd(event) {
+      console.log('leftComponentDragEnd event:', event)
+      if (event.from !== event.to) {
+        const newIndex = event.newIndex;
+        this.addFormItem(this.tempComponent, newIndex, event);
+      }
+      this.tempComponent = null;
+    },
+    // 左侧题目类型点击、拖动结束，添加题目
+    addFormItem(_component, targetIndex, dragEvent) {
+      // 题目答案构建
+      let answer;
+      if (typeof _component.answer === 'string') {
+        answer = _component.answer
+      } else {
+        answer = _.cloneDeep(_component.answer);
+      }
+      // 题目构建
+      const component = {
+        ..._component,
+        answer,
+        uploadConfig: _.cloneDeep(_component.uploadConfig),
+        itemList: [] // 【组】的题目列表
+      };
+      // 题目有选项，深度拷贝下
+      if (_component.selectOptionList) {
+        component['selectOptionList'] = _.cloneDeep(_component.selectOptionList);
+      }
+      // 新的ID封装
+      const {type} = component;
+      const formItem = {
+        id: `${type}_${this.uuid(8)}`,
+        component
+      };
+      if (!this.formItemList) {
+        this.formItemList = [];
+      }
+      // 是拖动操作添加的
+      if (dragEvent) {
+        const isQuestionGroup = dragEvent.to.className.includes('questionGroup') && !formItem.id.includes('questionGroup');
+        // 是【组】的题目添加，
+        if (isQuestionGroup) {
+          // 添加到题目到分组下、插入最后、深度拷贝下
+          this.formItemList = _.cloneDeep(
+            this.formItemList.map(item => {
+              if (dragEvent.to.className.includes(item.id)) {
                 item.component.itemList.push(formItem)
               }
               return item
             })
-            this.formItemList = newFormItemList
-            return;
-          }
+          )
+          return;
         }
-
-        if (targetIndex > -1) {
-          this.formItemList.splice(targetIndex, 0, formItem);
-        } else {
-          this.formItemList = [...this.formItemList, formItem];
-        }
-        this.$emit('change', this.formItemList)
-        setTimeout(() => {
-          this.formItemSelect(formItem.id);
-        }, 500);
-      },
-      // ---------- <<<<<<<<<<<<< 组件列表选择区操作 ----------
-
-      // ---------- 组件属性区操作 >>>>>>>>>>>>> ----------
-      resetAnswer(index, type) {
-        // 由于组件ui 选中时改变题目bug，动态设置现有选中答案
-        // index: 这里并不是数字，而是ID
-        let itemIndex = index;
-        if (typeof index === 'string') {
-          itemIndex = this.formItemList.findIndex(item => item.id === index);
-        }
-        if (type === 'singleSelect') {
-          if (!this.formItemList[itemIndex].component.selectOptionList.includes(this.formItemList[itemIndex].component.answer)) {
-            this.formItemList[itemIndex].component.answer = '';
-          }
-        } else {
-          this.formItemList[itemIndex].component.answer = this.formItemList[itemIndex].component.answer ? this.formItemList[itemIndex].component.answer.filter(e => this.formItemList[itemIndex].component.selectOptionList.includes(e)) : [];
-        }
-      },
-      propertyAddOption(index) {
-        this.selectedFormItem.component.selectOptionList.splice(index, 0, '选项' + (index + 1));
-      },
-      propertyDeleteOption(index) {
-        this.selectedFormItem.component.selectOptionList.splice(index, 1);
-      },
-      addFillBlankLine(formIndex, index, type) {
-        const id = Date.now();
-        this.selectedFormItem.component.statement.splice(index + 1, 0, {
-          id, type, value: ''
-        })
-        this.selectedFormItem.component.answer[id] = '';
-      },
-      // ---------- <<<<<<<<<<<<< 组件属性区操作 ----------
+      }
+      // 非【组】的题目添加，
+      if (targetIndex > -1) {
+        // 添加到指定位置
+        this.formItemList.splice(targetIndex, 0, formItem);
+      } else {
+        // 插入到题目列表最后
+        this.formItemList = [...this.formItemList, formItem];
+      }
+      this.$emit('change', this.formItemList)
+      setTimeout(() => {
+        this.formItemSelect(formItem.id);
+      }, 500);
     },
-  })
+    // ---------- <<<<<<<<<<<<< 组件列表选择区操作 ----------
+
+    // ---------- 组件属性区操作 >>>>>>>>>>>>> ----------
+    // 重置答案
+    resetAnswer(index, type) {
+      // 由于组件ui 选中时改变题目bug，动态设置现有选中答案
+      // index: 这里并不是数字，而是ID
+      let itemIndex = index;
+      if (typeof index === 'string') {
+        itemIndex = this.formItemList.findIndex(item => item.id === index);
+      }
+      if (type === 'singleSelect') {
+        // 单选，答案不再选项中
+        const answerNotInSelectOptionList = !this.formItemList[itemIndex].component.selectOptionList.includes(this.formItemList[itemIndex].component.answer)
+        if (answerNotInSelectOptionList) {
+          this.formItemList[itemIndex].component.answer = '';
+        }
+      } else {
+        // 多选，排除不再选项列表中的答案
+        const answerList = this.formItemList[itemIndex].component.answer;
+        const selectOptionList = this.formItemList[itemIndex].component.selectOptionList;
+        if(answerList) {
+          this.formItemList[itemIndex].component.answer = answerList.filter(answerItem => {
+            return selectOptionList.includes(answerItem);
+          });
+        } else {
+          this.formItemList[itemIndex].component.answer = [];
+        }
+      }
+    },
+    // 添加属性选项
+    addOptionForProperty(index) {
+      this.selectedFormItem.component.selectOptionList.splice(index, 0, '选项' + (index + 1));
+    },
+    // 删除属性选项
+    deletePropertyOption(index) {
+      this.selectedFormItem.component.selectOptionList.splice(index, 1);
+    },
+    // 添加天空题
+    addFillBlankLine(formIndex, index, type) {
+      const id = Date.now();
+      this.selectedFormItem.component.statement.splice(index + 1, 0, {
+        id, type, value: ''
+      })
+      this.selectedFormItem.component.answer[id] = '';
+    },
+    // ---------- <<<<<<<<<<<<< 组件属性区操作 ----------
+  },
+})
 </script>
 
 <style scoped>
-  .form-item-list-generator-content {
-    align-items: stretch;
-    height: 100%;
-  }
+.form-item-list-generator-content {
+  align-items: stretch;
+  height: 100%;
+}
 
-  .componentList {
-    padding: 8px;
-    box-sizing: border-box;
-    width: 256px;
-    overflow-y: auto;
-    height: 100%;
-    max-height: 100%;
-  }
+.componentList {
+  padding: 8px;
+  box-sizing: border-box;
+  width: 256px;
+  overflow-y: auto;
+  height: 100%;
+  max-height: 100%;
+}
 
+.left-component-item {
+  width: 100%;
+  margin: 8px 0;
+  transition: transform 0ms !important;
+}
+
+.left-component-item-title {
+  font-size: 14px;
+  color: #222;
+  margin: 6px 2px;
+}
+
+.left-component-item-body {
+  padding: 8px 10px;
+  background: #f5f8fa;
+  font-size: 12px;
+  cursor: move;
+  border: 1px dashed #f5f8fa;
+  border-radius: 3px;
+}
+
+.left-component-item-body:hover {
+  border: 1px dashed #4caf50;
+  background: #f5f8fa;
+  color: #4caf50;
+}
+
+.left-component-item-body:hover .v-icon {
+  color: #4caf50;
+}
+
+.formItemList {
+  flex: 1;
+  overflow-y: auto;
+  height: 100%;
+  max-height: calc(100vh - 200px);
+}
+
+.formItemList .formItem-selected {
+  border: 1px dashed #4caf50 !important;
+  background: #e6fde3;
+}
+
+.formItem-title {
+  white-space: normal;
+}
+
+.property {
+  width: 360px;
+  overflow-y: auto;
+  max-height: calc(100vh - 105px);
+  padding: 10px;
+}
+
+.property .property-title {
+  margin-bottom: 10px;
+}
+
+.property .v-expansion-panel .v-expansion-panel-header {
+  min-height: auto;
+}
+
+.property .v-expansion-panel-content__wrap {
+  padding: 0px;
+}
+
+.property .v-expansion-panel .v-list-item__action,
+.v-list-item__avatar,
+.v-list-item__icon {
+  display: inline-block;
+  min-width: 24px;
+}
+
+.propertyList::-webkit-scrollbar {
+  width: 5px;
+  background: #f5f8fa;
+  border-radius: 5px;
+}
+
+.propertyList::-webkit-scrollbar-thumb {
+  width: 5px;
+  background: #606060;
+  border-radius: 5px;
+}
+
+body .theme--light.v-text-field--filled.jh-v-input.black > .v-input__control > .v-input__slot {
+  background: #e6ebee;
+}
+
+.draggable-placeholder {
+  position: absolute;
+  left: 0 !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  opacity: 0.3;
+}
+
+.fill-blank {
+  display: inline-block;
+
+}
+
+.fill-blank-input {
+  padding-left: 10px;
+  padding-right: 10px;
+  border-bottom: 2px solid gray;
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+.v-text-field.jh-fill-blank-textarea>.v-input__control>.v-input__slot>.v-input__append-inner {
+  position: absolute;
+  top: 0;
+  right: 5px;
+}
+.v-application--is-ltr .jh-fill-blank-textarea .v-input__append-outer {
+  margin-bottom: 0!important;
+}
+@media (max-width: 500px) {
   .left-component-item {
-    width: 100%;
-    margin: 8px 0;
+    width: auto;
+    display: inline-block;
+    margin: 8px 4px;
     transition: transform 0ms !important;
   }
 
-  .left-component-item-title {
-    font-size: 14px;
-    color: #222;
-    margin: 6px 2px;
-  }
-
-  .left-component-item-body {
-    padding: 8px 10px;
-    background: #f5f8fa;
-    font-size: 12px;
-    cursor: move;
-    border: 1px dashed #f5f8fa;
-    border-radius: 3px;
-  }
-
-  .left-component-item-body:hover {
-    border: 1px dashed #4caf50;
-    background: #f5f8fa;
-    color: #4caf50;
-  }
-
-  .left-component-item-body:hover .v-icon {
-    color: #4caf50;
-  }
-
   .formItemList {
-    flex: 1;
-    overflow-y: auto;
-    height: 100%;
-    max-height: calc(100vh - 200px);
+    border-top: 2px solid #cccccc !important;
+    border-bottom: 2px solid #cccccc !important;
+    border-radius: unset !important;
+    height: auto;
+    max-height: none;
+    overflow: hidden;
   }
-
-  .formItemList .formItem-selected {
-    border: 1px dashed #4caf50 !important;
-    background: #e6fde3;
-  }
-
-  .formItem-title {
-    white-space: normal;
-  }
-
-  .property {
-    width: 360px;
-    overflow-y: auto;
-    max-height: calc(100vh - 105px);
-    padding: 10px;
-  }
-
-  .property .property-title {
-    margin-bottom: 10px;
-  }
-
-  .property .v-expansion-panel .v-expansion-panel-header {
-    min-height: auto;
-  }
-
-  .property .v-expansion-panel-content__wrap {
-    padding: 0px;
-  }
-
-  .property .v-expansion-panel .v-list-item__action,
-  .v-list-item__avatar,
-  .v-list-item__icon {
-    display: inline-block;
-    min-width: 24px;
-  }
-
-  .propertyList::-webkit-scrollbar {
-    width: 5px;
-    background: #f5f8fa;
-    border-radius: 5px;
-  }
-
-  .propertyList::-webkit-scrollbar-thumb {
-    width: 5px;
-    background: #606060;
-    border-radius: 5px;
-  }
-
-  body .theme--light.v-text-field--filled.cus-v-input.black>.v-input__control>.v-input__slot {
-    background: #e6ebee;
-  }
-
-  .draggable-placeholder {
-    position: absolute;
-    left: 0 !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    opacity: 0.3;
-  }
-
-  .fill-blank {
-    display: inline-block;
-
-  }
-
-  .fill-blank-input {
-    padding-left: 10px;
-    padding-right: 10px;
-    border-bottom: 2px solid gray;
-    margin-left: 5px;
-    margin-right: 5px;
-  }
-
-  @media (max-width: 500px) {
-    .left-component-item {
-      width: auto;
-      display: inline-block;
-      margin: 8px 4px;
-      transition: transform 0ms !important;
-    }
-
-    .formItemList {
-      border-top: 2px solid #cccccc !important;
-      border-bottom: 2px solid #cccccc !important;
-      border-radius: unset !important;
-      height: auto;
-      max-height: none;
-      overflow: hidden;
-    }
-  }
+}
 </style>

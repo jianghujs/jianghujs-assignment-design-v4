@@ -3,167 +3,185 @@
 {% block vueTemplate %}
 
 <script type="text/html" id="app-template">
-  <div>
-    <v-app mobile-breakpoint="sm">
-      <jh-menu />
-      <v-main class="mt-15">
-        <!-- 头部内容 >>>>>>>>>>>>> -->
-        <div class="jh-page-second-bar px-8">
-          <div class="pt-3 text-h7 font-weight-bold">作业管理
-            <!-- 帮助页按钮 -->
-            <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
-          </div>
-          <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+<div>
+  <v-app mobile-breakpoint="sm">
+    <jh-menu />
+    <v-main class="mt-15">
+      <!-- 头部内容 >>>>>>>>>>>>> -->
+      <div class="jh-page-second-bar px-8">
+        <div class="pt-3 text-h7 font-weight-bold">作业管理
+          <!-- 帮助页按钮 -->
+          <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
         </div>
-        <!-- <<<<<<<<<<<<< 头部内容 -->
-        <div class="jh-page-body-container px-8">
-          <!-- 页面内容 >>>>>>>>>>>>> -->
-          <v-card class="rounded-lg">
-            <v-row class="ma-0 py-0 px-4">
-              <!--新增按钮-->
-              <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
-                <v-btn color="success" small class="elevation-0 mr-2"
-                  @click="doUiAction('startCreateItem')">新增</v-btn>
-              </v-col>
-              <v-spacer></v-spacer>
-              <!--搜索-->
-              <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="px-0">
-                <v-text-field v-model="searchInput" color="success" prefix="搜索：" class="jh-v-input" dense filled
-                  single-line></v-text-field>
-              </v-col>
-            </v-row>
-            <!--表格-->
-            <v-data-table
-              :headers="headers"
-              :items="tableData"
-              :search="searchInput"
-              :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
-              :items-per-page="-1"
-              mobile-breakpoint="0"
-              :loading="isTableLoading"
-              :class="{'zebraLine': isTableZebraLineShown }"
-              checkbox-color="success"
-              fixed-header
-              class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
-              <!--表格行操作按钮-->
-              <template v-slot:item.action="{ item }">
-                <span role="button" class="success--text jh-font-size-3 pr-2"
-                @click="doUiAction('goToAssignmentDesignPage', {item})">
-                  <v-icon size="12" class="success--text">mdi-application-edit-outline</v-icon>出题
-                </span>
-                
-                <span role="button" class="success--text jh-font-size-3 pr-2"
-                  @click="doUiAction('startUpdateItem', item)">
+        <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+      </div>
+      <!-- <<<<<<<<<<<<< 头部内容 -->
+      <div class="jh-page-body-container px-8">
+        <!-- 页面内容 >>>>>>>>>>>>> -->
+        <v-card class="rounded-lg">
+          <v-row class="ma-0 py-0 px-4">
+            <!--新增按钮-->
+            <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
+              <v-btn color="success" small class="elevation-0 mr-2" @click="doUiAction('startCreateItem')">新增
+              </v-btn>
+            </v-col>
+            <v-spacer></v-spacer>
+            <!--搜索-->
+            <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="px-0">
+              <v-text-field v-model="searchInput" color="success" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+            </v-col>
+          </v-row>
+          <!--表格-->
+          <v-data-table
+            :headers="headers"
+            :items="tableData"
+            :search="searchInput"
+            :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+            :items-per-page="-1"
+            mobile-breakpoint="0"
+            :loading="isTableLoading"
+            :class="{'zebraLine': isTableZebraLineShown }"
+            checkbox-color="success"
+            fixed-header
+            class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+            <!--表格行操作按钮-->
+            <template v-slot:item.action="{ item }">
+              <span role="button" class="success--text font-weight-medium jh-font-size-3 pr-2"
+                    @click="doUiAction('goToAssignmentDesignPage', item)">
+                <v-icon size="12" class="success--text">mdi-application-edit-outline</v-icon>出题
+              </span>
+              <template v-if="!isMobile">
+                <span role="button" class="success--text font-weight-medium jh-font-size-3 pr-2"
+                      @click="doUiAction('startUpdateItem', item)">
                   <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
                 </span>
-                
-                <span role="button" class="success--text jh-font-size-3"
-                  @click="doUiAction('deleteItem', item)">
+                <span role="button" class="success--text font-weight-medium jh-font-size-3"
+                      @click="doUiAction('deleteItem', item)">
                   <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
                 </span>
               </template>
-              <!--表格底部右侧功能按钮-->
-              <template v-slot:footer.prepend>
-                <v-btn icon @click="doUiAction('openTableZebraLineMenu', $event)">
-                  <v-icon>mdi-menu</v-icon>
-                </v-btn>
-                <v-menu top offset-y :close-on-content-click="false" v-model="isTableZebraLineMenuShown" :position-x="tableZebraLineMenuPosition.x" :position-y="tableZebraLineMenuPosition.y">
-                  <v-list>
-                    <v-list-item>
-                      <v-switch v-model="isTableZebraLineShown" hide-details class="ma-0" label="显示斑马纹" dense flat></v-switch>
+              <template v-else>
+                <v-menu offset-y>
+                  <template v-slot:activator="{ on, attrs }">
+                <span role="button" class="success--text font-weight-medium font-size-2" v-bind="attrs" v-on="on">
+                  <v-icon size="16" class="success--text">mdi-dots-vertical</v-icon>操作
+                </span>
+                  </template>
+                  <v-list dense>
+                    <v-list-item @click="doUiAction('startUpdateItem', item)">
+                      <v-list-item-title>
+                        <v-icon size="16">mdi-note-edit-outline</v-icon>
+                        修改信息
+                      </v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="doUiAction('deleteItem', item)">
+                      <v-list-item-title>
+                        <v-icon size="16">mdi-trash-can-outline</v-icon>
+                        删除信息
+                      </v-list-item-title>
                     </v-list-item>
                   </v-list>
                 </v-menu>
               </template>
-              <!--表格底部右侧分页-->
-              <template v-slot:footer.page-text="pagination">
-                <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
-                <span class="ml-1">共{{pagination.itemsLength}}条</span>
-              </template>
-            </v-data-table>
-          </v-card>
-          <!-- <<<<<<<<<<<<< 页面内容 -->
-          <!--新增抽屉-->
-          <v-navigation-drawer v-model="isCreateDrawerShown" fixed temporary right width="80%" :permanent="isCreateDrawerShown"
-            class="elevation-24">
-            <v-form v-if="isCreateDrawerShown" ref="createForm" lazy-validation>
-              <!--抽屉标题-->
-              <v-row>
-                <span class="title pa-6 pl-8">添加信息</span>
-              </v-row>
-              <!--抽屉表单主体-->
-              <v-row class="mt-0 px-6">
-                <v-col cols="12" sm="12" md="4">
-                  <span class="jh-input-label">作业标题</span>
-                  <v-text-field class="jh-v-input" dense single-line filled label="作业标题" v-model="createItem.articleTitle"
-                    :rules="validationRules.requireRules"></v-text-field>
-                </v-col>
-              </v-row>
-              <!--抽屉操作按钮-->
-              <v-row class="justify-end mx-0 mt-8 px-6">
-                <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
-                <v-btn class="ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
-              </v-row>
-            </v-form>
-            <!--抽屉关闭按钮-->
-            <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
-              @click="isCreateDrawerShown = false">
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-          </v-navigation-drawer>
-          <!--编辑抽屉-->
-          <v-navigation-drawer v-model="isUpdateDrawerShown" fixed temporary right :permanent="isUpdateDrawerShown" width="80%"
-            class="elevation-24">
-            <v-form v-if="isUpdateDrawerShown" ref="updateForm" lazy-validation>
-              <!--抽屉标题-->
-              <v-row>
-                <span class="title pa-6 pl-8">修改信息</span>
-              </v-row>
-              <!--抽屉表单-->
-              <v-row class="mt-0 px-6">
-                <v-col cols="12" sm="12" md="4">
-                  <span class="jh-input-label">作业标题</span>
-                  <v-text-field class="jh-v-input" dense single-line filled label="作业标题" v-model="updateItem.articleTitle"
-                    :rules="validationRules.requireRules"></v-text-field>
-                </v-col>
-                
-              </v-row>
-              <!--抽屉操作按钮-->
-              <v-row class="justify-end mx-0 mt-8 px-6">
-                <v-btn color="success" small @click="doUiAction('updateItem')">保存</v-btn>
-                <v-btn class="ml-2" small @click="isUpdateDrawerShown = false">取消
-                </v-btn>
-              </v-row>
-            </v-form>
-
-            <!--抽屉关闭按钮-->
-            <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
-              @click="isUpdateDrawerShown = false">
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-          </v-navigation-drawer>
-        </div>
-
-        <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
-        <v-navigation-drawer v-model="isHelpPageDrawerShown" fixed temporary right width="80%" :permanent="isHelpPageDrawerShown"
-          class="elevation-24">
-          <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#README.md`" width="100%"
-            height="100%"></iframe>
-
+            </template>
+            <!--没有数据-->
+            <template v-slot:loading>
+              <div class="jh-no-data">数据加载中</div>
+            </template>
+            <template v-slot:no-data>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <template v-slot:no-results>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <!--表格底部右侧分页-->
+            <template v-slot:footer.page-text="pagination">
+              <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+              <span class="ml-1">共{{pagination.itemsLength}}条</span>
+            </template>
+          </v-data-table>
+        </v-card>
+        <!-- <<<<<<<<<<<<< 页面内容 -->
+        <!--新增抽屉-->
+        <v-navigation-drawer v-model="isCreateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+          <v-form ref="createForm" lazy-validation>
+            <!--抽屉标题-->
+            <v-row>
+              <span class="title pa-6 pl-8">添加信息</span>
+            </v-row>
+            <!--抽屉表单主体-->
+            <v-row class="mt-0 px-6">
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">作业标题</span>
+                <v-text-field class="jh-v-input" dense single-line filled label="作业标题" v-model="createItem.articleTitle"
+                              :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+            </v-row>
+            <!--抽屉操作按钮-->
+            <v-row class="justify-end mx-0 mt-8 px-6">
+              <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
+              <v-btn class="ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
+            </v-row>
+          </v-form>
+          <!--抽屉关闭按钮-->
           <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
-            @click="isHelpPageDrawerShown = false">
+                 @click="isCreateDrawerShown = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-navigation-drawer>
-        <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
-      </v-main>
-    </v-app>
+        <!--编辑抽屉-->
+        <v-navigation-drawer v-model="isUpdateDrawerShown" fixed temporary right :permanent="isUpdateDrawerShown" width="80%"
+                             class="elevation-24">
+          <v-form v-if="isUpdateDrawerShown" ref="updateForm" lazy-validation>
+            <!--抽屉标题-->
+            <v-row>
+              <span class="title pa-6 pl-8">修改信息</span>
+            </v-row>
+            <!--抽屉表单-->
+            <v-row class="mt-0 px-6">
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">作业标题</span>
+                <v-text-field class="jh-v-input" dense single-line filled label="作业标题" v-model="updateItem.articleTitle"
+                              :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
 
-    <jh-toast />
-    <jh-mask />
-    <jh-confirm-dialog />
+            </v-row>
+            <!--抽屉操作按钮-->
+            <v-row class="justify-end mx-0 mt-8 px-6">
+              <v-btn color="success" small @click="doUiAction('updateItem')">保存</v-btn>
+              <v-btn class="ml-2" small @click="isUpdateDrawerShown = false">取消
+              </v-btn>
+            </v-row>
+          </v-form>
 
-  </div>
+          <!--抽屉关闭按钮-->
+          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
+                 @click="isUpdateDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+      </div>
+
+      <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+      <v-navigation-drawer v-model="isHelpPageDrawerShown" fixed temporary right width="80%" :permanent="isHelpPageDrawerShown"
+                           class="elevation-24">
+        <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#README.md`" width="100%"
+                height="100%"></iframe>
+
+        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
+               @click="isHelpPageDrawerShown = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-navigation-drawer>
+      <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+    </v-main>
+  </v-app>
+
+  <jh-toast />
+  <jh-mask />
+  <jh-confirm-dialog />
+
+</div>
 </script>
 
 <div id="app">
@@ -178,280 +196,270 @@
 <!-- <<<<<<<<<<<<< 加载页面组件 -->
 
 <script type="module">
-  new Vue({
-    el: '#app',
-    template: '#app-template',
-    vueComponent: 'page',
-    vuetify: new Vuetify(),
-    data: {
-      // 面包屑
-      breadcrumbs: [
-        {
-          text: '首页',
-          disabled: true,
-        },
-        {
-          text: '文章管理',
-          disabled: true,
-        }
-      ],
-      serverSearchInput: {
-        articleTitle: null,
-      },
-      isHelpPageDrawerShown: false,
-
-      // 表格相关数据
-      isTableZebraLineMenuShown: false,
-      tableZebraLineMenuPosition: { x: null, y: null },
-      isTableZebraLineShown: true,
-      validationRules: {
-        requireRules: [
-          v => !!v || 'This is required',
-        ],
-      },
-      searchInput: null,
-      isTableLoading: true,
-      tableData: [],
-      headers: [
-        { text: '操作', value: 'action', align: 'center', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed' },
-        { text: "ID", value: "assignmentId", width: 80 },
-        { text: "作业名称", value: "articleTitle", width: 300 },
-      ],
-
-      isCreateDrawerShown: false,
-      createItem: {},
-      createActionData: {},
-      isUpdateDrawerShown: false,
-      updateItem: {},
-      updateItemId: null,
-      updateActionData: {},
-      deleteItem: {},
-      deleteItemId: null
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vueComponent: 'page',
+  vuetify: new Vuetify(),
+  data: {
+    isMobile: window.innerWidth < 500,
+    // 面包屑
+    breadcrumbs: [
+      {text: '首页', disabled: true,},
+      {text: '文章管理', disabled: true,}
+    ],
+    serverSearchInput: {
+      articleTitle: null,
     },
-    mounted() {
-      this.doUiAction('getTableData');
+    isHelpPageDrawerShown: false,
+
+    // 表格相关数据
+    isTableZebraLineMenuShown: false,
+    tableZebraLineMenuPosition: {x: null, y: null},
+    isTableZebraLineShown: true,
+    validationRules: {
+      requireRules: [
+        v => !!v || 'This is required',
+      ],
     },
-    methods: {
-      async doUiAction(uiActionId, uiActionData) {
-        switch (uiActionId) {
-          case 'getTableData':
-            await this.getTableData();
-            break;
-          case 'startCreateItem':
-            await this.prepareCreateFormData();
-            await this.openCreateDrawer();
-            break;
-          case 'createItem':
-            await this.prepareCreateValidate();
-            await this.confirmCreateItemDialog();
-            await this.prepareDoCreateItem();
-            await this.doCreateItem();
-            await this.closeCreateDrawer();
-            await this.clearCreateItemData();
-            await this.getTableData();
-            break;
-          case 'startUpdateItem':
-            await this.prepareUpdateFormData(uiActionData);
-            await this.openUpdateDrawer();
-            break;
-          case 'updateItem':
-            await this.prepareUpdateValidate();
-            await this.confirmUpdateItemDialog();
-            await this.prepareDoUpdateItem();
-            await this.doUpdateItem();
-            await this.closeUpdateDrawer();
-            await this.clearUpdateItemData();
-            await this.getTableData();
-            break;
-          case 'deleteItem':
-            await this.prepareDeleteFormData(uiActionData);
-            await this.confirmDeleteItemDialog();
-            await this.prepareDoDeleteItem();
-            await this.doDeleteItem();
-            await this.clearDeleteItem();
-            await this.getTableData();
-            break;
-          case 'goToAssignmentDesignPage':
-            await this.goToAssignmentDesignPage(uiActionData);
-          default:
-            console.error("[doUiAction] uiActionId not find", { uiActionId });
-            break;
-        }
-      },
+    searchInput: null,
+    isTableLoading: true,
+    tableData: [],
+    headers: [
+      {text: '操作', value: 'action', sortable: false, width: window.innerWidth < 500 ? 120 : 170, class: 'fixed', cellClass: 'fixed'},
+      {text: "ID", value: "assignmentId", width: 80},
+      {text: "作业名称", value: "articleTitle", width: 300},
+    ],
 
-      async getTableData() {
-        this.isTableLoading = true;
-        const result = await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'assignmentManagement',
-              actionId: 'selectItemList',
-              whereLike: {
-                articleTitle: this.serverSearchInput.articleTitle,
-              },
-              limit: (this.serverSearchInput.isFirstSearch && this.serverSearchInput.categoryId === 'all') ? 200 : 99999999,
-              orderBy: [{ column: 'id', order: 'desc' }]
-            }
+    isCreateDrawerShown: false,
+    createItem: {},
+    createActionData: {},
+    isUpdateDrawerShown: false,
+    updateItem: {},
+    updateItemId: null,
+    updateActionData: {},
+    deleteItem: {},
+    deleteItemId: null
+  },
+  mounted() {
+    this.doUiAction('getTableData');
+  },
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'getTableData':
+          await this.getTableData();
+          break;
+        case 'startCreateItem':
+          await this.prepareCreateFormData();
+          await this.openCreateDrawer();
+          break;
+        case 'createItem':
+          await this.prepareCreateValidate();
+          await this.confirmCreateItemDialog();
+          await this.prepareDoCreateItem();
+          await this.doCreateItem();
+          await this.closeCreateDrawer();
+          await this.getTableData();
+          break;
+        case 'startUpdateItem':
+          await this.prepareUpdateFormData(uiActionData);
+          await this.openUpdateDrawer();
+          break;
+        case 'updateItem':
+          await this.prepareUpdateValidate();
+          await this.confirmUpdateItemDialog();
+          await this.prepareDoUpdateItem();
+          await this.doUpdateItem();
+          await this.closeUpdateDrawer();
+          await this.getTableData();
+          break;
+        case 'deleteItem':
+          await this.prepareDeleteFormData(uiActionData);
+          await this.confirmDeleteItemDialog();
+          await this.prepareDoDeleteItem();
+          await this.doDeleteItem();
+          await this.clearDeleteItem();
+          await this.getTableData();
+          break;
+        case 'goToAssignmentDesignPage':
+          await this.goToAssignmentDesignPage(uiActionData);
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", {uiActionId});
+          break;
+      }
+    },
+
+    async getTableData() {
+      this.isTableLoading = true;
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'assignmentManagement',
+            actionId: 'selectItemList',
+            whereLike: {
+              articleTitle: this.serverSearchInput.articleTitle,
+            },
+            limit: (this.serverSearchInput.isFirstSearch && this.serverSearchInput.categoryId === 'all') ? 200 : 99999999,
+            orderBy: [{column: 'id', order: 'desc'}]
           }
-        });
-
-        this.tableData = result.data.appData.resultData.rows;
-        this.isTableLoading = false;
-      },
-
-      // ---------- 斑马纹开关 uiAction >>>>>>>>>> --------
-      async openTableZebraLineMenu(funObj) {
-        this.tableZebraLineMenuPosition.x = funObj.x - funObj.offsetX + 10;
-        this.tableZebraLineMenuPosition.y = window.innerHeight - 50;
-        this.isTableZebraLineMenuShown = !this.isTableZebraLineMenuShown;
-      },
-      // ---------- <<<<<<<<<< 斑马纹开关 uiAction --------
-      // ---------- 新增数据 uiAction >>>>>>>>>> --------
-      async prepareCreateFormData() {
-        this.createItem = {};
-      },
-
-      async openCreateDrawer() {
-        this.isCreateDrawerShown = true;
-      },
-      async prepareCreateValidate() {
-        if (await this.$refs.createForm.validate()) {
-          return true;
         }
-        throw new Error("请完善表单信息")
-      },
+      });
 
-      async confirmCreateItemDialog() {
-        if (await window.confirmDialog({ title: "新增", content: "确定新增吗？" }) === false) {
-          throw new Error("[confirmCreateFormDialog] 否");
-        }
-      },
+      this.tableData = result.data.appData.resultData.rows;
+      this.isTableLoading = false;
+    },
 
-      prepareDoCreateItem() {
-        const { id, ...data } = this.createItem;
-        this.createActionData = data;
-      },
+    // ---------- 斑马纹开关 uiAction >>>>>>>>>> --------
+    async openTableZebraLineMenu(funObj) {
+      this.tableZebraLineMenuPosition.x = funObj.x - funObj.offsetX + 10;
+      this.tableZebraLineMenuPosition.y = window.innerHeight - 50;
+      this.isTableZebraLineMenuShown = !this.isTableZebraLineMenuShown;
+    },
+    // ---------- <<<<<<<<<< 斑马纹开关 uiAction --------
+    // ---------- 新增数据 uiAction >>>>>>>>>> --------
+    async prepareCreateFormData() {
+      this.createItem = {};
+    },
 
-      async doCreateItem() {
-        await window.jhMask.show();
-        await window.vtoast.loading("新增作业");
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'assignmentManagement',
-              actionId: 'jhInsertItem',
-              actionData: this.createActionData
-            }
+    async openCreateDrawer() {
+      this.isCreateDrawerShown = true;
+    },
+    async prepareCreateValidate() {
+      if (await this.$refs.createForm.validate()) {
+        return true;
+      }
+      throw new Error("请完善表单信息")
+    },
+
+    async confirmCreateItemDialog() {
+      if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+        throw new Error("[confirmCreateFormDialog] 否");
+      }
+    },
+
+    prepareDoCreateItem() {
+      const {id, ...data} = this.createItem;
+      this.createActionData = data;
+    },
+
+    async doCreateItem() {
+      await window.jhMask.show();
+      await window.vtoast.loading("新增作业");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'assignmentManagement',
+            actionId: 'jhInsertItem',
+            actionData: this.createActionData
           }
-        })
-        await window.jhMask.hide();
-        await window.vtoast.success("新增作业成功");
-      },
-      async closeCreateDrawer() {
-        this.isCreateDrawerShown = false;
-      },
-      async clearCreateItemData() {
-        this.createItem = {};
-        this.createActionData = null;
-      },
-      // ---------- <<<<<<<<<<< 新增数据 uiAction  --------
-      // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
-      async prepareUpdateFormData(funObj) {
-        this.updateItem = _.cloneDeep(funObj);
-      },
-
-      async closeUpdateDrawer() {
-        this.isUpdateDrawerShown = false;
-      },
-
-
-      async openUpdateDrawer() {
-        this.isUpdateDrawerShown = true;
-      },
-
-      async prepareUpdateValidate() {
-        if (await this.$refs.updateForm.validate()) {
-          return true;
         }
-        throw new Error("请完善表单信息")
-      },
+      })
+      await window.jhMask.hide();
+      await window.vtoast.success("新增作业成功");
+    },
+    async closeCreateDrawer() {
+      this.isCreateDrawerShown = false;
+      this.createItem = {};
+      this.createActionData = null;
+    },
+    // ---------- <<<<<<<<<<< 新增数据 uiAction  --------
+    // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
+    async prepareUpdateFormData(funObj) {
+      this.updateItem = _.cloneDeep(funObj);
+    },
 
-      async confirmUpdateItemDialog() {
-        if (await window.confirmDialog({ title: "修改", content: "确定修改吗？" }) === false) {
-          throw new Error("[confirmUpdateItemDialog] 否");
-        }
-      },
 
-      async prepareDoUpdateItem() {
-        const { id, ...data } = this.updateItem;
-        this.updateItemId = id;
-        this.updateActionData = data;
-      },
 
-      async doUpdateItem() {
-        await window.jhMask.show();
-        await window.vtoast.loading("修改作业");
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'assignmentManagement',
-              actionId: 'jhUpdateItem',
-              actionData: this.updateActionData,
-              where: { id: this.updateItemId }
-            }
+    async openUpdateDrawer() {
+      this.isUpdateDrawerShown = true;
+    },
+
+    async prepareUpdateValidate() {
+      if (await this.$refs.updateForm.validate()) {
+        return true;
+      }
+      throw new Error("请完善表单信息")
+    },
+
+    async confirmUpdateItemDialog() {
+      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+        throw new Error("[confirmUpdateItemDialog] 否");
+      }
+    },
+
+    async prepareDoUpdateItem() {
+      const {id, ...data} = this.updateItem;
+      this.updateItemId = id;
+      this.updateActionData = data;
+    },
+
+    async doUpdateItem() {
+      await window.jhMask.show();
+      await window.vtoast.loading("修改作业");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'assignmentManagement',
+            actionId: 'jhUpdateItem',
+            actionData: this.updateActionData,
+            where: {id: this.updateItemId}
           }
-        })
-
-        await window.jhMask.hide();
-        await window.vtoast.success("修改作业成功");
-      },
-
-      async clearUpdateItemData() {
-        this.updateItem = {};
-        this.updateActionData = null;
-        this.updateItemId = null;
-      },
-      // ---------- <<<<<<<<<<< 修改数据 uiAction  --------
-      // ---------- 删除数据 uiAction >>>>>>>>>>>> --------
-      async prepareDeleteFormData(funObj) {
-        this.deleteItem = _.cloneDeep(funObj);
-      },
-      async confirmDeleteItemDialog() {
-        if (await window.confirmDialog({ title: "删除", content: "确定删除吗？" }) === false) {
-          throw new Error("[confirmDeleteItemDialog] 否");
         }
-      },
-      async prepareDoDeleteItem() {
-        const { id } = this.deleteItem;
-        this.deleteItemId = id;
-      },
-      async doDeleteItem() {
-        await window.vtoast.loading("删除作业");
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'assignmentManagement',
-              actionId: 'jhDeleteItem',
-              actionData: {},
-              where: { id: this.deleteItemId }
-            }
-          }
-        });
-        await window.vtoast.success("删除作业成功");
-      },
-      async clearDeleteItem() {
-        this.deleteItem = {};
-        this.deleteItemId = null;
-      },
-      // ---------- <<<<<<<<<<< 删除数据 uiAction  --------
+      })
 
-      // 跳转作业详情
-      async goToAssignmentDesignPage({ item }) {
-        const { assignmentId, articleTitle } = item;
-        window.open(`/${window.appInfo.appId}/page/designAssignment?assignmentId=${assignmentId}&title=${articleTitle}`);
-      },
-    }
-  })
+      await window.jhMask.hide();
+      await window.vtoast.success("修改作业成功");
+    },
+
+    async closeUpdateDrawer() {
+      this.isUpdateDrawerShown = false;
+      this.updateItem = {};
+      this.updateActionData = null;
+      this.updateItemId = null;
+    },
+    // ---------- <<<<<<<<<<< 修改数据 uiAction  --------
+    // ---------- 删除数据 uiAction >>>>>>>>>>>> --------
+    async prepareDeleteFormData(funObj) {
+      this.deleteItem = _.cloneDeep(funObj);
+    },
+    async confirmDeleteItemDialog() {
+      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+        throw new Error("[confirmDeleteItemDialog] 否");
+      }
+    },
+    async prepareDoDeleteItem() {
+      const {id} = this.deleteItem;
+      this.deleteItemId = id;
+    },
+    async doDeleteItem() {
+      await window.vtoast.loading("删除作业");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'assignmentManagement',
+            actionId: 'jhDeleteItem',
+            actionData: {},
+            where: {id: this.deleteItemId}
+          }
+        }
+      });
+      await window.vtoast.success("删除作业成功");
+    },
+    async clearDeleteItem() {
+      this.deleteItem = {};
+      this.deleteItemId = null;
+    },
+    // ---------- <<<<<<<<<<< 删除数据 uiAction  --------
+
+    // 跳转作业详情
+    async goToAssignmentDesignPage(funObj) {
+      const {assignmentId, articleTitle} = funObj;
+      window.open(`/${window.appInfo.appId}/page/designAssignment?assignmentId=${assignmentId}&title=${articleTitle}`);
+    },
+  }
+})
 </script>
 
 <style scoped>
